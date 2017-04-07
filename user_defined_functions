@@ -1,0 +1,78 @@
+
+stat()
+{
+sort | uniq -c | sort -n
+}
+
+follows()
+{
+	grep "$1" -r .|sed -re 's/_.*//g'
+}
+
+github_api() 
+{ 
+  
+  if [ "$2" == ''   ];then 
+  	url=https://api.github.com/users/"$1"
+  else
+	url=https://api.github.com/users/"$1"/"$2"?page="$3"\&per_page=100 
+  fi	
+
+  echo $url 
+  curl -u msgoff:$token $url | 
+	grep --color=auto html_url | 
+	grep --color=auto -oP http.* | 
+	tr -d '"' | tr -d ',' | 
+	grep --color=auto -v "https://github.com/$1$"|
+	sed -re 's/https:\/\/github\.com\///g' > /tmp/resp
+	cat /tmp/resp >> "$1"_"$2"
+
+	num_lines=$(wc -l /tmp/resp | cut -d" " -f1)
+	echo $num_lines
+	if [ $num_lines == 100 ];then 
+		github_api "$1" "$2"  $(($3 + 1)) 
+	fi
+
+}
+
+
+postgres_prep(){
+	rm test_out
+	while read f;do echo \"$f\">>test_out; done < "$1"; less test_out |sed -re 's/"$/",/g'>out;
+	array=$(echo "{" $(cat out) "}"|sed -re 's/, \}/}/g')
+	echo $array
+	postgres "insert into users values ('$(echo $1|sed -re 's/_.*//g')','$array')"
+	mv "$1" inpostgres/
+
+}
+
+
+postgres_update(){
+        rm test_out
+        while read f;do echo \"$f\">>test_out; done < "$1"; less test_out |sed -re 's/"$/",/g'>out;
+        array=$(echo "{" $(cat out) "}"|sed -re 's/, \}/}/g')
+        echo $array
+        postgres "update  users set $2='$array' where username ='$(echo $1|sed -re 's/_.*//g')' "
+        mv "$1" inpostgres/
+
+}
+
+
+
+
+github_clone(){
+
+mkdir "$1"
+mv "$1"_repos "$1"/
+cd "$1"
+while read f;do git clone https://github.com/$f;done <"$1"_repos
+
+}
+
+
+
+postgres(){
+sudo -u postgres -H --  psql -d myproject -c "$1"; 
+ }
+
+ 
