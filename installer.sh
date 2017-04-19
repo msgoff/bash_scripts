@@ -15,7 +15,6 @@ sudo apt install silversearcher-ag
 sudo apt install codesearch
 sudo pip install requests
 sudo apt install pdfgrep
-sudo apt install emacs
 sudo apt install xpdf
 sudo apt install pdf2htmlex
 sudo apt install parallel
