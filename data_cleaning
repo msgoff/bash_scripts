@@ -1,0 +1,25 @@
+echo "Sed query builder"
+echo "Your queries will be saved in sed_file"
+echo "Your filtered data will be in data, original file untouched"
+
+cat sed_file >> sed_queries_old
+
+cat "$1" > /tmp/data
+cat /tmp/data > data
+cat data
+clean(){
+cat data
+echo "input pattern to replace"
+read v1
+echo "input what to replace it with "
+read v2
+echo "s/"$v1"/$v2/g" >>sed_file
+sed -rf sed_file data|tee /tmp/data
+cat /tmp/data > data 
+}
+
+while [ "$v1" != 'Q' ]
+do 
+clean 
+done
+

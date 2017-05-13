@@ -1,3 +1,5 @@
+#most of this was copied from the docker install script
+#sill needs some work
 sudo vim /etc/apt/sources.list.d/java-8-debian.list
 deb http://ppa.launchpad.net/webupd8team/java/ubuntu trusty main
 deb-src http://ppa.launchpad.net/webupd8team/java/ubuntu trusty main
