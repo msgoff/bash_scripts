@@ -10,9 +10,6 @@ cd fzf
 ./install
 cd ../
 
-echo "input email"
-read email
-git config --global user.email "$email"
 
 
 sudo apt install nfs-common
