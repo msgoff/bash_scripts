@@ -1,0 +1,4 @@
+
+#make an installer script from history
+#history|xzs|sort -nk 1|grep -oP "[a-z].*" 
+
