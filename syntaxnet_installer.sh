@@ -9,7 +9,7 @@ sudo apt-get install oracle-java8-set-default
 
 
 sudo apt-get update
-
+sudo pip install -U pip
 sudo apt-get install -y \
           file \
           git \
@@ -38,15 +38,21 @@ sudo python -m pip install \
           pandas \
           protobuf \
           scipy \
-          sklearn \
-    && python -m ipykernel.kernelspec \
-    && python -m pip install pygraphviz \
+          sklearn 
+    sudo python -m ipykernel.kernelspec 
+    sudo python -m pip install pygraphviz \
           --install-option="--include-path=/usr/include/graphviz" \
-          --install-option="--library-path=/usr/lib/graphviz/" \
-    && python -m jupyter_core.command nbextension enable \
+          --install-option="--library-path=/usr/lib/graphviz/" 
+    sudo python -m jupyter_core.command nbextension enable \
           --py --sys-prefix widgetsnbextension
 
 
-wget  https://github.com/bazelbuild/bazel/releases/download/0.4.3/bazel-0.4.3-installer-linux-x86_64.sh \
-     chmod +x bazel-0.4.3-installer-linux-x86_64.sh \
-     ./bazel-0.4.3-installer-linux-x86_64.sh \
+wget  https://github.com/bazelbuild/bazel/releases/download/0.4.3/bazel-0.4.3-installer-linux-x86_64.sh 
+     chmod +x bazel-0.4.3-installer-linux-x86_64.sh 
+     sudo  ./bazel-0.4.3-installer-linux-x86_64.sh
+
+
+git clone --recursive https://github.com/tensorflow/models.git
+  cd models/syntaxnet/tensorflow
+  ./configure
+  cd .. 

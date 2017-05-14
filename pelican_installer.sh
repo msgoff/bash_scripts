@@ -6,6 +6,8 @@ sudo apt-get install git
 sudo apt-get install w3m
 sudo pip install -U pip
 sudo pip install jupyter pandas tqdm requests selenium 
+wget http://www.scootersoftware.com/bcompare-4.2.1.22354_amd64.deb
+
 git clone git@github.com:junegunn/fzf
 cd fzf
 ./install
@@ -24,7 +26,6 @@ sudo apt install golang-go
 sudo apt install silversearcher-ag
 sudo apt install codesearch
 sudo pip install requests
-sudo apt install pdfgrep
 sudo apt install xpdf
 sudo apt install parallel
 
