@@ -56,3 +56,5 @@ git clone --recursive https://github.com/tensorflow/models.git
   cd models/syntaxnet/tensorflow
   ./configure
   cd .. 
+
+bazel test ...
