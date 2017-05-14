@@ -26,8 +26,7 @@ sudo apt install golang-go
 sudo apt install silversearcher-ag
 sudo apt install codesearch
 sudo pip install requests
-sudo apt install xpdf
-sudo apt install parallel
 
 
-
+ssh-keygen 
+firefox github.com
