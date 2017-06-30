@@ -1,2 +1,2 @@
 mkdir ~/Desktop/"$1"
-mlocate *."$1" |xargs -I {} cp {} ~/Desktop/"$1"
+mlocate .|grep -i "\.$1$" |xargs -I {} cp {} ~/Desktop/"$1"
