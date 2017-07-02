@@ -1,57 +1,66 @@
-sudo apt-get update
-sudo apt install parallel
-sudo apt-get install build-essential libssl-dev libffi-dev python-dev
-sudo apt-get install neovim
-sudo apt-get install python-pip
-sudo pip install -U pip
-sudo apt-get install screen
-sudo apt-get install git
-sudo apt-get install w3m
-sudo pip install jupyter pandas tqdm requests selenium 
-sudo apt install nfs-common
-sudo apt-get install postgresql postgresql-contrib
-sudo pip install psycopg2
-sudo pip install tqdm
-sudo apt install ncurses-devel
-sudo apt install ncurses
-sudo apt-get install libncurses5-dev libncursesw5-dev
-sudo apt install golang-go
-sudo apt install silversearcher-ag
-sudo apt install codesearch
-sudo pip install requests
-sudo apt install bison m4 flex
-sudo apt-get install screen git -y
-sudo pip install requests[security] pandas virtualenv jupyter pyparsing pytz pyzmq six tornado jsonschema
-sudo apt-get install libcurl3-dev python-pip build-essential python-dev python-setuptools python-numpy -y
-sudo pip install requests[security] pandas virtualenv jupyter pyparsing pytz pyzmq six tornado jsonschema
-sudo pip install selenium sklearn nltk certifi scikit-learn tqdm natsort xlwt xmltodict
-sudo pip install whitenoise lxml django redis
+git clone https://github.com/junegunn/fzf
+sudo apt-get update -y
 sudo add-apt-repository ppa:webupd8team/java
-sudo apt-get update
+sudo apt-get install build-essential libssl-dev libffi-dev python-dev -y
 sudo apt-get install build-essential -y
 sudo apt-get install cmake -y
 sudo apt-get install g++ gfortran -y
 sudo apt-get install git -y
+sudo apt-get install libcurl3-dev python-pip build-essential python-dev python-setuptools python-numpy -y
 sudo apt-get install libcurl3-dev -y
+sudo apt-get install libncurses5-dev libncursesw5-dev
 sudo apt-get install libtool automake -y
 sudo apt-get install libtool-bin -y
-sudo apt-get remove unity-webapps-common  -y
-sudo apt-get update -y
-sudo apt-get install git -y
 sudo apt-get install lynis -y
+sudo apt-get install neovim -y
+sudo apt-get install nodejs-legacy npm ipython ipython-notebook libzmq3-dev
+sudo apt-get install postgresql postgresql-contrib -y
 sudo apt-get install python-pip -y
-sudo apt-get install vim -y
+sudo apt-get install screen git -y
+sudo apt-get install w3m -y
+sudo apt-get install qemu-kvm libvirt-bin virtinst bridge-utils cpu-checker -y
+sudo apt-get remove unity-webapps-common  -y
+sudo apt install bison m4 flex -y
+sudo apt install codesearch -y
+sudo apt install golang-go -y
+sudo apt install ncurses -y 
+sudo apt install ncurses-devel -y
+sudo apt install nfs-common -y
+sudo apt install parallel -y 
+sudo apt install silversearcher-ag -y
+sudo pip install -U pip
+sudo pip install bpython
 sudo pip install asciitree
+sudo pip install BeautifulSoup4
+sudo pip install html5lib
+sudo pip install jupyter pandas tqdm requests selenium 
+sudo pip install psycopg2
 sudo pip install redis
+sudo pip install requests
+sudo pip install requests[security] 
+sudo pip install pandas 
+sudo pip install virtualenv 
+sudo pip install jupyter 
+sudo pip install pyparsing 
+sudo pip install pytz 
+sudo pip install pyzmq 
+sudo pip install six 
+sudo pip install tornado 
+sudo pip install jsonschema
+sudo pip install selenium
+sudo pip install selenium 
+sudo pip install sklearn 
+sudo pip install nltk 
+sudo pip install certifi 
+sudo pip install scikit-learn 
+sudo pip install tqdm 
+sudo pip install natsort 
+sudo pip install xlwt 
+sudo pip install xmltodict
 sudo pip install tqdm
 sudo pip install --upgrade autopep8
-sudo pip install --upgrade pip
-sudo pip install selenium
-sudo pip install html5lib
-sudo pip install BeautifulSoup4
-
+sudo pip install whitenoise 
+sudo pip install lxml 
+sudo pip install django 
+sudo pip install redis
 wget http://www.scootersoftware.com/bcompare-4.2.1.22354_amd64.deb
-git clone git@github.com:junegunn/fzf
-sudo apt-get install nodejs-legacy npm ipython ipython-notebook libzmq3-dev
-
-sudo npm install -g ijavascript
