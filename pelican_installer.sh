@@ -63,4 +63,5 @@ sudo pip install whitenoise
 sudo pip install lxml 
 sudo pip install django 
 sudo pip install redis
+cp  bashrc ~/.bashrc
 wget http://www.scootersoftware.com/bcompare-4.2.1.22354_amd64.deb

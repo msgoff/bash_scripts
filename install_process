@@ -7,7 +7,6 @@ sudo add-apt-repository universe -y
 sudo -E apt-get update
 sudo -E apt-get install sagemath-upstream-binary -y
 sudo apt-get update
-sudo apt-get install screen git -y
 cd ~/Desktop
 wget http://launchpadlibrarian.net/40224290/grep_2.5.4-4build1_amd64.deb
 sudo dpkg -i ./grep_2.5.4-4build1_amd64.deb
@@ -19,8 +18,3 @@ sudo pip install whitenoise lxml django redis
 jupyter notebook
 git clone --depth 1 https://github.com/junegunn/fzf.git ~/.fzf
 ~/.fzf/install 
-source ~/.bashrc 
-fzf
-w3m
-sudo apt install w3m
-sudo apt install vim 
