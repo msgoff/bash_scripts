@@ -1,3 +1,4 @@
+sudo dpkg  --add-architecture i386
 team_viewer=teamviewer_i386.deb
 
 tv_error()
