@@ -1,5 +1,6 @@
 git clone https://github.com/junegunn/fzf
 sudo apt-get update -y
+sudo apt-get install software-properties-common python-software-properties
 sudo add-apt-repository ppa:webupd8team/java
 sudo apt-get install build-essential libssl-dev libffi-dev python-dev -y
 sudo apt-get install build-essential -y
@@ -63,5 +64,11 @@ sudo pip install whitenoise
 sudo pip install lxml 
 sudo pip install django 
 sudo pip install redis
+sudo apt-get install \
+     apt-transport-https \
+     ca-certificates \
+     curl \
+     python-software-properties
+
 cp  bashrc ~/.bashrc
 wget http://www.scootersoftware.com/bcompare-4.2.1.22354_amd64.deb
