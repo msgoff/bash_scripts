@@ -1,0 +1,276 @@
+#!/bin/sh
+# chroot hook: configure initrd for netboot of compute nodes, and install some software from source
+cat <<CHROOTHOOK > config/hooks/script.hook.chroot
+#!/bin/bash
+# note: can't actually build the initrd here, as it will be missing modules
+# needed when running on a different system
+live-update-initramfs -u -k all
+install -d /srv/tftp
+cp -a /etc/initramfs-tools/ /etc/initramfs-pxe
+sed -i 's/BOOT=local/BOOT=nfs/g' /etc/initramfs-pxe/initramfs.conf 
+# get, build, and install Open MPI
+#wget http://www.open-mpi.org/software/ompi/v1.4/downloads/openmpi-$OPENMPIVERSION.tar.bz2
+#tar xfj openmpi-$OPENMPIVERSION.tar.bz2
+#cd openmpi-$OPENMPIVERSION/
+#./configure
+#make -j8 all
+#make install
+#sync
+#cd ../
+#rm -R -f openmpi*
+#ldconfig
+#sync
+# petry: -disable ganglia daemons by default
+#        -disable dnsmasq as we start that manually and we
+#        don't want it running on the nodes (messes with ganglia)
+#        -disable avahi-daemon, yet another dns-caching mechanism which messes with ganglia
+#        -disable firewall
+
+update-rc.d ganglia-monitor disable
+update-rc.d gmetad disable
+update-rc.d apache2 disable
+update-rc.d dnsmasq disable
+update-rc.d avahi-daemon disable
+update-rc.d arno-iptables-firewall disable
+update-rc.d gdm disable
+update-rc.d gdm3 disable
+update-rc.d xdm disable
+
+
+pip install -U pip
+pip install redis
+
+
+
+mv /etc/skel/gmetad.conf /etc/ganglia/
+mv /etc/skel/gmond.conf.pelicanmaster /etc/ganglia/
+mv /etc/skel/gmond.conf.pelicannode /etc/ganglia/
+
+
+#!/usr/bin/env bash
+
+simple_install() {
+    package_name=$2
+    if [ -z "$2" ]; then
+        package_name=$1
+    fi;
+    if [ -z "$(which $1)" ]; then
+        sudo apt-get install $package_name --assume-yes
+    fi;
+}
+
+
+
+#----------------------------------------------------------------------------------------------------
+# install packages
+#----------------------------------------------------------------------------------------------------
+simple_install silversearcher-ag
+simple_install mlocate
+simple_install redis-server
+simple_install parallel 
+simple_install build-essential
+simple_install libssl-dev
+simple_install libffi-dev
+simple_install python-dev
+
+#----------------------------------------------------------------------------------------------------
+# kill some process
+#----------------------------------------------------------------------------------------------------
+find . -name \*.djcache -delete
+
+pgrep gunicorn | awk '{print $1}' | xargs kill -9
+pgrep python | awk '{print $1}' | xargs kill -9
+pgrep node | awk '{print $1}' | xargs kill -9
+
+#----------------------------------------------------------------------------------------------------
+# get ip, assume eth0
+#----------------------------------------------------------------------------------------------------
+nic=$(ip link|grep -iv LOOPBACK|cut -d ":" -f2|head -n 1|tr -d " ")
+ips=($(ip addr show $nic | grep -o 'inet [0-9]\+\.[0-9]\+\.[0-9]\+\.[0-9]\+' | grep -o [0-9].*))
+static_ip=${ips[0]}
+
+#----------------------------------------------------------------------------------------------------
+# update repository
+#----------------------------------------------------------------------------------------------------
+if [ ! -f "/var/cache/apt/pkgcache.bin" ]; then
+    sudo apt-get update
+else
+    declare -i TIME_SINCE_LAST_UPDATE=$(($(date +%s) - $(date +%s -r /var/cache/apt/pkgcache.bin)))
+    if (( TIME_SINCE_LAST_UPDATE > 86400 )); then
+        sudo apt-get update
+    fi
+fi
+
+#----------------------------------------------------------------------------------------------------
+# install webserver (nginx)
+#----------------------------------------------------------------------------------------------------
+simple_install "nginx"
+
+sudo rm -f /etc/nginx/sites-available/default
+sudo rm -f /etc/nginx/sites-enabled/default
+
+sudo service nginx restart
+
+
+#----------------------------------------------------------------------------------------------------
+# copy nginx configuration
+#----------------------------------------------------------------------------------------------------
+listen_port=80
+intern_port=8000
+
+if [ ! -f "/etc/nginx/sites-available/wipeq.conf" ]
+then
+    conf=""
+    conf=${conf}"server {\n"
+    conf=${conf}"\tlisten $listen_port;\n"
+    conf=${conf}"\tserver_name $static_ip;\n"
+    conf=${conf}"\tlocation /static/ {\n"
+    conf=${conf}"\t\talias /var/www/wipeq/static/;\n"
+    conf=${conf}"\t}\n"
+    conf=${conf}"\tlocation /media/ {\n"
+    conf=${conf}"\t\talias /var/www/wipeq/media/;\n"
+    conf=${conf}"\t}\n"
+    conf=${conf}"\tlocation / {\n"
+    conf=${conf}"\t\tproxy_pass http://127.0.0.1:$intern_port;\n"
+    conf=${conf}"\t\tproxy_set_header Host \$host;\n"
+    conf=${conf}"\t\tproxy_set_header X-Forwarded-Host \$server_name;\n"
+    conf=${conf}"\t\tproxy_set_header X-Real-IP \$remote_addr;\n"
+    conf=${conf}"\t\tadd_header P3P 'CP=\"ALL DSP COR PSAa PSDa OUR NOR ONL UNI COM NAV\"';\n"
+    conf=${conf}"\t}\n"
+    conf=${conf}"}\n"
+
+    sudo mkdir -p /var/www/wipeq/media/files
+    sudo chown $(whoami) /var/www/wipeq
+    sudo chgrp $(whoami) /var/www/wipeq
+    sudo chown $(whoami) /var/www/wipeq/files
+    sudo chgrp $(whoami) /var/www/wipeq/files
+
+    sudo rm -f /etc/nginx/sites-available/wipeq.conf
+    sudo rm -f /etc/nginx/sites-enabled/wipeq.conf
+
+    echo -e $conf | sudo tee "/etc/nginx/sites-available/wipeq.conf"
+    sudo ln -s /etc/nginx/sites-available/wipeq.conf /etc/nginx/sites-enabled
+
+    sudo service nginx restart
+fi
+
+#----------------------------------------------------------------------------------------------------
+# hard drive tools
+#----------------------------------------------------------------------------------------------------
+simple_install "hdparm"
+simple_install "parted"
+simple_install "shred"
+simple_install "hardinfo"
+simple_install "smartctl" "smartmontools"
+
+simple_install "pip" "python-pip"
+
+sudo pip install --upgrade pip
+
+sudo pip install virtualenv
+
+if ! [[ -d "venv" ]]; then
+  virtualenv venv
+fi
+
+source venv/bin/activate
+
+pip install -r /mnt/ramdisk/user/pelicanhome/Desktop/wipeq/requirements.txt
+
+# install npm
+if [ -z "$(which npm)" ]; then
+    if [[ "$(uname -a)" == *"Ubuntu"* ]]; then
+        sudo apt-get install npm --assume-yes
+        sudo apt-get install nodejs-legacy --assume-yes
+    else
+        curl -sL https://deb.nodesource.com/setup -o nodesource_setup.sh
+        sudo bash nodesource_setup.sh
+        sudo apt-get install nodejs --assume-yes
+        sudo apt-get install build-essential --assume-yes
+        sudo rm nodesource_setup.sh
+    fi
+fi;
+
+sudo npm install -g bower
+
+sudo bower install --allow-root
+
+#----------------------------------------------------------------------------------------------------
+# add cron job to watch for sync_disks process
+#----------------------------------------------------------------------------------------------------
+#SCRIPT_PATH=`realpath $0`
+#HOME_DIR=`dirname $SCRIPT_PATH`
+#SYNC_PATH="$HOME_DIR/sync.sh"
+#CRON_OUTPUT="$(crontab -l 2>/dev/null)"
+#
+#if [[ $SYNC_PATH == *$CRON_OUTPUT* ]]; then
+#    (crontab -l 2>/dev/null; echo "* * * * * cd $HOME_DIR && $SYNC_PATH > /dev/null 2>&1") | crontab -
+#fi
+
+python manage.py sync_disks &
+
+# move into the django project
+cd wipeq
+
+python manage.py collectstatic <<< "yes"
+
+sudo apt-get install postgresql postgresql-contrib --assume-yes
+
+sudo -u postgres -H -- psql -c "CREATE USER wipeq PASSWORD 'ifgdh';"
+sudo -u postgres -H -- psql -c "CREATE DATABASE wipeq OWNER wipeq;"
+
+python manage.py migrate
+
+
+
+#----------------------------------------------------------------------------------------------------
+# install wetty
+#----------------------------------------------------------------------------------------------------
+listen_port=3003
+intern_port=3000
+
+if [ ! -f "/etc/nginx/sites-available/wetty.conf" ]; then
+    conf=""
+    conf=${conf}"server {\n"
+    conf=${conf}"\tlisten $listen_port;\n"
+    conf=${conf}"\tserver_name $static_ip;\n"
+    conf=${conf}"\tlocation / {\n"
+    conf=${conf}"\t\tproxy_pass http://127.0.0.1:$intern_port;\n"
+    conf=${conf}"\t\tproxy_set_header Host \$host;\n"
+    conf=${conf}"\t\tproxy_set_header X-Forwarded-Host \$server_name;\n"
+    conf=${conf}"\t\tproxy_set_header X-Real-IP \$remote_addr;\n"
+    conf=${conf}"\t\tadd_header P3P 'CP=\"ALL DSP COR PSAa PSDa OUR NOR ONL UNI COM NAV\"';\n"
+    conf=${conf}"\t}\n"
+    conf=${conf}"}\n"
+
+    echo -e ${conf} | sudo tee "/etc/nginx/sites-available/wetty.conf"
+    sudo ln -s /etc/nginx/sites-available/wetty.conf /etc/nginx/sites-enabled
+
+
+fi;
+
+
+
+
+
+
+
+
+sudo cp /home/user/Desktop/wipeq/pelican_config /home/user
+
+
+
+
+
+
+
+
+
+
+if [ -f "/etc/skel/make_pelicanhome.sh" ]; then
+	cd /etc/skel
+	sh ./make_pelicanhome.sh
+fi
+CHROOTHOOK
+chmod +x config/hooks/script.hook.chroot
+

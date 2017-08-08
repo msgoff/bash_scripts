@@ -1,0 +1,217 @@
+#!/bin/sh												#!/bin/sh
+# petry: script needs to run as user 'user' for ssh to nodes to work.					# petry: script needs to run as user 'user' for ssh to nodes to work.
+if [ ! "$(whoami)" = 'user' ]; then									if [ ! "$(whoami)" = 'user' ]; then
+	su user -c "pelican_restart_hpc"									su user -c "pelican_restart_hpc"
+	exit 0													exit 0
+fi 													fi 
+PKTMP="/home/user/tmp"											PKTMP="/home/user/tmp"
+PATH="/bin:/sbin:/usr/bin:/usr/sbin"									PATH="/bin:/sbin:/usr/bin:/usr/sbin"
+export PATH												export PATH
+DIALOG="dialog"												DIALOG="dialog"
+# petry : set flag indicating we're running this script (used by					# petry : set flag indicating we're running this script (used by
+#         SHUTDOWN_IF_NOT_SETUP config variable)							#         SHUTDOWN_IF_NOT_SETUP config variable)
+touch /home/user/.running_pelican_restart_hpc								touch /home/user/.running_pelican_restart_hpc
+# petry : default variable values									# petry : default variable values
+PELICAN_NETWORK="10.11.12"										PELICAN_NETWORK="10.11.12"
+GANGLIA_PROMPT="NO"											GANGLIA_PROMPT="NO"
+GANGLIA="YES"												GANGLIA="YES"
+# petry : load configuration file (override default values potentially)					# petry : load configuration file (override default values potentially)
+if [ -e /home/user/pelican_config ]; then								if [ -e /home/user/pelican_config ]; then
+	. /home/user/pelican_config										. /home/user/pelican_config
+fi													fi
+FRONTENDIP="$PELICAN_NETWORK.1"										FRONTENDIP="$PELICAN_NETWORK.1"
+# get cluster ethernet device. Need to escape periods for sed						# get cluster ethernet device. Need to escape periods for sed
+FRONTENDIP_FOR_SED=$(echo "$FRONTENDIP" | sed 's/\./\\\./g')						FRONTENDIP_FOR_SED=$(echo "$FRONTENDIP" | sed 's/\./\\\./g')
+CLUSTER_DEV=$(/sbin/ifconfig -a | tr -d '\n' | sed "s/.*\(eth[^ ]*\).*$FRONTENDIP_FOR_SED.*/\1/")	CLUSTER_DEV=$(/sbin/ifconfig -a | tr -d '\n' | sed "s/.*\(eth[^ ]*\).*$FRONTENDIP_FOR_SED.*/\1/")
+bailout(){												bailout(){
+	# petry : remove flag indicating we are running this script						# petry : remove flag indicating we are running this script
+	rm -f /home/user/.running_pelican_restart_hpc								rm -f /home/user/.running_pelican_restart_hpc
+	exit 0													exit 0
+}													}
+# check which nodes are up										# check which nodes are up
+checknodes(){												checknodes(){
+	rm -f $PKTMP/bhosts											rm -f $PKTMP/bhosts
+	sudo fping -a -q -r0 -f /home/user/fpinghosts > $PKTMP/bhosts 2>/dev/null				sudo fping -a -q -r0 -f /home/user/fpinghosts > $PKTMP/bhosts 2>/dev/null
+}													}
+retry(){												retry(){
+	checknodes												checknodes
+	NNODES="$(grep -c "" $PKTMP/bhosts)"									NNODES="$(grep -c "" $PKTMP/bhosts)"
+	MESSAGENODES="\nGo turn on your compute nodes now. \n\nAt the moment $NNODES compute nodes (n		MESSAGENODES="\nGo turn on your compute nodes now. \n\nAt the moment $NNODES compute nodes (n
+	$DIALOG --title "$TITLE" --defaultno --yesno "$MESSAGENODES" 20 50 || retry				$DIALOG --title "$TITLE" --defaultno --yesno "$MESSAGENODES" 20 50 || retry
+}													}
+trap bailout 1 2 3 15											trap bailout 1 2 3 15
+# petry: override restarting MPI warning if configured in config file					# petry: override restarting MPI warning if configured in config file
+if [ ! "$MPI_WARNING_PROMPT" = "NO" ]; then								if [ ! "$MPI_WARNING_PROMPT" = "NO" ]; then
+	TITLE="Restart Pelican HPC"										TITLE="Restart Pelican HPC"
+	MESSAGE="\nTime to bring the compute nodes into the cluster. If you are resizing a running cl		MESSAGE="\nTime to bring the compute nodes into the cluster. If you are resizing a running cl
+	$DIALOG --title "$TITLE" --yesno "$MESSAGE" 15 90 || bailout						$DIALOG --title "$TITLE" --yesno "$MESSAGE" 15 90 || bailout
+fi													fi
+# petry: Send WOL signals to nodes if configured in pelican config file.				# petry: Send WOL signals to nodes if configured in pelican config file.
+if [ "$WOL_NODES" = "YES" ]; then									if [ "$WOL_NODES" = "YES" ]; then
+	if [ ! "$WOL_PROMPT" = "NO" ]; then									if [ ! "$WOL_PROMPT" = "NO" ]; then
+		TITLE="Restart Pelican HPC"										TITLE="Restart Pelican HPC"
+		MESSAGE="\nComputers for your cluster that have been configured in your pelican confi			MESSAGE="\nComputers for your cluster that have been configured in your pelican confi
+		if $DIALOG --title "$TITLE" --yesno "$MESSAGE" 15 90 ; then						if $DIALOG --title "$TITLE" --yesno "$MESSAGE" 15 90 ; then
+			WOL="YES"												WOL="YES"
+		else													else
+			WOL="NO"												WOL="NO"
+		fi													fi
+	else													else
+		WOL="YES"												WOL="YES"
+	fi													fi
+	if [ "$WOL" = "YES" ]; then										if [ "$WOL" = "YES" ]; then
+		/usr/bin/pelican_nodes start										/usr/bin/pelican_nodes start
+	fi													fi
+fi													fi
+# petry: Only prompt to turn on nodes if not overridden in config file					# petry: Only prompt to turn on nodes if not overridden in config file
+if [ ! "$DETECT_NODES_PROMPT" = "NO" ]; then								if [ ! "$DETECT_NODES_PROMPT" = "NO" ]; then
+	retry													retry
+else													else
+	checknodes												checknodes
+fi													fi
+# master must be last in the list									# master must be last in the list
+# petry: allow override in config file whether to include frontend					# petry: allow override in config file whether to include frontend
+if [ ! "$FRONTEND_IN_MPI" = "NO" ]; then								if [ ! "$FRONTEND_IN_MPI" = "NO" ]; then
+	echo "$FRONTENDIP" | cat >> $PKTMP/bhosts								echo "$FRONTENDIP" | cat >> $PKTMP/bhosts
+fi													fi
+#													#
+# Configure /etc/hosts on frontend for proper dns behaviour.						# Configure /etc/hosts on frontend for proper dns behaviour.
+HOSTIPS=$(cat $PKTMP/bhosts | tr "\n" " ")								HOSTIPS=$(cat $PKTMP/bhosts | tr "\n" " ")
+cat >> /tmp/hosts$$ <<!HOSTS_PREAMBLE!									cat >> /tmp/hosts$$ <<!HOSTS_PREAMBLE!
+127.0.0.1	localhost										127.0.0.1	localhost
+$FRONTENDIP	pel1											$FRONTENDIP	pel1
+# The following lines are desirable for IPv6 capable hosts						# The following lines are desirable for IPv6 capable hosts
+::1     localhost ip6-localhost ip6-loopback								::1     localhost ip6-localhost ip6-loopback
+fe00::0 ip6-localnet											fe00::0 ip6-localnet
+ff00::0 ip6-mcastprefix											ff00::0 ip6-mcastprefix
+ff02::1 ip6-allnodes											ff02::1 ip6-allnodes
+ff02::2 ip6-allrouters											ff02::2 ip6-allrouters
+ff02::3 ip6-allhosts											ff02::3 ip6-allhosts
+!HOSTS_PREAMBLE!											!HOSTS_PREAMBLE!
+for HOSTIP in $HOSTIPS; do										for HOSTIP in $HOSTIPS; do
+	if [ ! $HOSTIP = $FRONTENDIP ]; then									if [ ! $HOSTIP = $FRONTENDIP ]; then
+		HOST=$(echo $HOSTIP | sed 's/[^\.]*.[^\.]*.[^\.]*.\([0-9]*\)/\1/')					HOST=$(echo $HOSTIP | sed 's/[^\.]*.[^\.]*.[^\.]*.\([0-9]*\)/\1/')
+		NODEHOSTNAME="pel$HOST"											NODEHOSTNAME="pel$HOST"
+		echo "$HOSTIP $NODEHOSTNAME" >> /tmp/hosts$$ 								echo "$HOSTIP $NODEHOSTNAME" >> /tmp/hosts$$ 
+	fi													fi
+done													done
+sudo mv /tmp/hosts$$ /etc/hosts										sudo mv /tmp/hosts$$ /etc/hosts
+# Now refresh dnsmasq											# Now refresh dnsmasq
+sudo killall -HUP dnsmasq										sudo killall -HUP dnsmasq
+#													#
+# petry: add slots information to bhosts								# petry: add slots information to bhosts
+TMPBHOSTS="/tmp/bhosts$$"										TMPBHOSTS="/tmp/bhosts$$"
+for HOSTIP in $HOSTIPS; do										for HOSTIP in $HOSTIPS; do
+	SLOTS=$NUM_SLOTS											SLOTS=$NUM_SLOTS
+	ETHERS_ENTRY=$(grep -s $HOSTIP /etc/ethers)								ETHERS_ENTRY=$(grep -s $HOSTIP /etc/ethers)
+	if  [ ! -z "$ETHERS_ENTRY" ]; then									if  [ ! -z "$ETHERS_ENTRY" ]; then
+		MAC=$(echo "$ETHERS_ENTRY" | cut --delimiter=" " -f 1)							MAC=$(echo "$ETHERS_ENTRY" | cut --delimiter=" " -f 1)
+		NODE_INFO_SLOTS=$(echo "$NODE_INFO" | grep -o "$MAC[^ ]*" | grep 's' | sed 's/[^s]*s0			NODE_INFO_SLOTS=$(echo "$NODE_INFO" | grep -o "$MAC[^ ]*" | grep 's' | sed 's/[^s]*s0
+		if [ ! -z "$NODE_INFO_SLOTS" ]; then									if [ ! -z "$NODE_INFO_SLOTS" ]; then
+			SLOTS="$NODE_INFO_SLOTS"										SLOTS="$NODE_INFO_SLOTS"
+		fi													fi
+	fi													fi
+	if [ -z "$SLOTS" ]; then										if [ -z "$SLOTS" ]; then
+		echo "$HOSTIP" >> /tmp/bhosts$$										echo "$HOSTIP" >> /tmp/bhosts$$
+	elif [ "$SLOTS" = "0" ]; then										elif [ "$SLOTS" = "0" ]; then
+		# no entry so do nothing										# no entry so do nothing
+		true													true
+	else													else
+		echo "$HOSTIP slots=$SLOTS" >> /tmp/bhosts$$								echo "$HOSTIP slots=$SLOTS" >> /tmp/bhosts$$
+	fi													fi
+done													done
+mv /tmp/bhosts$$ $PKTMP/bhosts										mv /tmp/bhosts$$ $PKTMP/bhosts
+
+# petry: start ganglia, prompt if requested in config file.						# petry: start ganglia, prompt if requested in config file.
+if [ "$GANGLIA_PROMPT" = "YES" ]; then									if [ "$GANGLIA_PROMPT" = "YES" ]; then
+	STARTGANGLIA="NO"											STARTGANGLIA="NO"
+	TITLE="Restart Pelican HPC"										TITLE="Restart Pelican HPC"
+	MESSAGE="\nThe ganglia cluster monitoring software starts a web server on the frontend which 		MESSAGE="\nThe ganglia cluster monitoring software starts a web server on the frontend which 
+	if $DIALOG --title "$TITLE" --yesno "$MESSAGE" 15 90 ; then						if $DIALOG --title "$TITLE" --yesno "$MESSAGE" 15 90 ; then
+		STARTGANGLIA="YES"											STARTGANGLIA="YES"
+	fi													fi
+elif [ "$GANGLIA" = "YES" ]; then									elif [ "$GANGLIA" = "YES" ]; then
+	STARTGANGLIA="YES"											STARTGANGLIA="YES"
+else													else
+	STARTGANGLIA="NO"											STARTGANGLIA="NO"
+fi													fi
+if [ "$STARTGANGLIA" = "YES" ]; then									if [ "$STARTGANGLIA" = "YES" ]; then
+	# fixing the warning>Restarting web server: apache2apache2: Could not reliably determine the 		# fixing the warning>Restarting web server: apache2apache2: Could not reliably determine the 
+	if ! grep -qF "ServerName pel1" /etc/apache2/apache2.conf						if ! grep -qF "ServerName pel1" /etc/apache2/apache2.conf
+	then													then
+		sudo echo "ServerName pel1" | sudo tee -a /etc/apache2/apache2.conf					sudo echo "ServerName pel1" | sudo tee -a /etc/apache2/apache2.conf
+	fi													fi
+	# petry: We have to configure the ganglia webfrontend, ganglia-monitor and				# petry: We have to configure the ganglia webfrontend, ganglia-monitor and
+	# gmetad on the frontend, and ganglia-monitor on all the nodes.						# gmetad on the frontend, and ganglia-monitor on all the nodes.
+	# stop all local daemons										# stop all local daemons
+	sudo systemctl stop apache2										sudo systemctl stop apache2
+	sudo systemctl stop ganglia-monitor									sudo systemctl stop ganglia-monitor
+	sudo systemctl stop gmetad										sudo systemctl stop gmetad
+	# setup webfrontend and apache										# setup webfrontend and apache
+	sudo cp /etc/ganglia-webfrontend/apache.conf /etc/apache2/sites-enabled/ganglia.conf			sudo cp /etc/ganglia-webfrontend/apache.conf /etc/apache2/sites-enabled/ganglia.conf
+	sudo cp /etc/ganglia/gmond.conf.pelicanmaster /etc/ganglia/gmond.conf					sudo cp /etc/ganglia/gmond.conf.pelicanmaster /etc/ganglia/gmond.conf
+	# setup ssh environment											# setup ssh environment
+	sudo bash -c 'echo PATH=$PATH >> /etc/environment'							sudo bash -c 'echo PATH=$PATH >> /etc/environment'
+	sudo bash -c 'echo LD_LIBRARY_PATH=$LD_LIBRARY_PATH >> /etc/environment'				sudo bash -c 'echo LD_LIBRARY_PATH=$LD_LIBRARY_PATH >> /etc/environment'
+	# restart frontend services										# restart frontend services
+	sudo systemctl start ganglia-monitor									sudo systemctl start ganglia-monitor
+	sudo systemctl start gmetad										sudo systemctl start gmetad
+	sudo systemctl start apache2										sudo systemctl start apache2
+	# configure node gmond.conf file in nodes.								# configure node gmond.conf file in nodes.
+	for HOSTIP in $HOSTIPS; do										for HOSTIP in $HOSTIPS; do
+		if [ ! "$HOSTIP" = "$FRONTENDIP" ]; then								if [ ! "$HOSTIP" = "$FRONTENDIP" ]; then
+			ssh "$HOSTIP" sudo systemctl stop ganglia-monitor							ssh "$HOSTIP" sudo systemctl stop ganglia-monitor
+			ssh "$HOSTIP" sudo cp /etc/ganglia/gmond.conf.pelicannode /etc/ganglia/gmond.				ssh "$HOSTIP" sudo cp /etc/ganglia/gmond.conf.pelicannode /etc/ganglia/gmond.
+			ssh "$HOSTIP" sudo systemctl start ganglia-monitor							ssh "$HOSTIP" sudo systemctl start ganglia-monitor
+			ssh "$HOSTIP" sudo systemctl start gmetad								ssh "$HOSTIP" sudo systemctl start gmetad
+			# setup ssh environment in nodes									# setup ssh environment in nodes
+			ssh -t "$HOSTIP" "sudo bash -c 'echo PATH=$PATH >> /etc/environment'"					ssh -t "$HOSTIP" "sudo bash -c 'echo PATH=$PATH >> /etc/environment'"
+			ssh -t "$HOSTIP" "sudo bash -c 'echo LD_LIBRARY_PATH=$LD_LIBRARY_PATH >> /etc				ssh -t "$HOSTIP" "sudo bash -c 'echo LD_LIBRARY_PATH=$LD_LIBRARY_PATH >> /etc
+		fi													fi
+	done													done
+fi													fi
+# ganglia code finished.										# ganglia code finished.
+# display success message										# display success message
+NNODES="$(grep -c "" $PKTMP/bhosts)"									NNODES="$(grep -c "" $PKTMP/bhosts)"
+# final report												# final report
+# petry: override final report if configured in config file						# petry: override final report if configured in config file
+if [ ! "$FINAL_REPORT_PROMPT" = "NO" ]; then								if [ ! "$FINAL_REPORT_PROMPT" = "NO" ]; then
+	if [ ! "$FLOPS_TEST" = "NO" ]; then									if [ ! "$FLOPS_TEST" = "NO" ]; then
+		SUCCESS="\nYour cluster of $NNODES nodes is (probably) ready to use, a rudimentary te			SUCCESS="\nYour cluster of $NNODES nodes is (probably) ready to use, a rudimentary te
+	else 													else 
+		SUCCESS="\nYour cluster of $NNODES nodes is (probably) ready to use.  The nodes in th			SUCCESS="\nYour cluster of $NNODES nodes is (probably) ready to use.  The nodes in th
+	fi													fi
+	$DIALOG --title "$TITLE" --msgbox "$SUCCESS" 15 50							$DIALOG --title "$TITLE" --msgbox "$SUCCESS" 15 50
+fi													fi
+echo -n "[H[J"												echo -n "[H[J"
+# flops.f simple test of cluster									# flops.f simple test of cluster
+if [ ! "$FLOPS_TEST" = "NO" ]; then									if [ ! "$FLOPS_TEST" = "NO" ]; then
+	if [ -e /home/user/flops.f ]; then									if [ -e /home/user/flops.f ]; then
+		cd /home/user												cd /home/user
+		mpif77 -o flops flops.f								      |			/opt/openmpi-1.8.8/bin/mpif77 -o flops flops.f
+		# petry: removed -np $NNODES from the following - it will use one slot					# petry: removed -np $NNODES from the following - it will use one slot
+		# per host if slots are not defined anyway, and it will use the number of				# per host if slots are not defined anyway, and it will use the number of
+		# slots found if they are defined which is desirable.							# slots found if they are defined which is desirable.
+		mpirun --hostfile /home/user/tmp/bhosts /home/user/flops			      |			nbc=0
+												      >			while read ip
+												      >			do
+												      >				echo $ip
+												      >				host=$(echo $ip | cut -d"." -f4)
+												      >				host="pel"$host
+												      >				nbci=$(ssh -n $host sudo dmidecode --type processor | grep "Core Count" | cut
+												      >				if echo $nbci | egrep -q '^[0-9]+$'; then
+												      >					nbc=$(($nbc+$nbci))
+												      >				else
+												      >					nbc=$(($nbc+1))
+												      >				fi
+												      >			done </home/user/tmp/bhosts
+												      >			/opt/openmpi-1.8.8/bin/mpirun --hostfile /home/user/tmp/bhosts -np $nbc /home/user/fl
+	fi													fi
+fi													fi
+# petry: add option for final local script								# petry: add option for final local script
+if [ "$RUN_FRONTEND_LOCAL" = "YES" ]; then								if [ "$RUN_FRONTEND_LOCAL" = "YES" ]; then
+	if [ -e /home/user/pelican_frontend_local ]; then							if [ -e /home/user/pelican_frontend_local ]; then
+		/home/user/pelican_frontend_local									/home/user/pelican_frontend_local
+	fi													fi
+fi													fi
+bailout													bailout
