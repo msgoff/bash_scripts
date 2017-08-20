@@ -1,7 +1,7 @@
 git clone https://github.com/junegunn/fzf
 sudo apt-get update -y
 sudo apt-get install software-properties-common python-software-properties
-sudo add-apt-repository ppa:webupd8team/java
+
 sudo apt-get install build-essential libssl-dev libffi-dev python-dev -y
 sudo apt-get install build-essential -y
 sudo apt-get install cmake -y
