@@ -46,9 +46,9 @@ lb config noauto \\
 	--archive-areas="main contrib non-free" \\
 	--iso-application="PelicanHPC" \\
 	--iso-volume="PelicanHPC" \\
-	--bootappend-live="hostname=pelican boot=live noeject config quiet splash 3 locales=${pel_locales} keyboard-layouts=${pel_keyboard_layouts}" \\
+	--bootappend-live="hostname=pelican boot=live live-config noeject config silent splash 3 locales=${pel_locales} keyboard-layouts=${pel_keyboard_layouts}" \\
 	--cache-packages="true" \\
-	--distribution="jessie" \\
+	--distribution="stretch" \\
 	--cache-stages="bootstrap" \\
 	--updates="true" \\
 	--security="true" \\

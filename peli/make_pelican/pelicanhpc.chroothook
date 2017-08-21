@@ -37,8 +37,8 @@ update-rc.d gdm3 disable
 update-rc.d xdm disable
 
 
-pip install -U pip
-pip install redis
+sudo pip install -U pip
+sudo pip install redis
 
 
 
@@ -83,7 +83,6 @@ pgrep python | awk '{print $1}' | xargs kill -9
 pgrep node | awk '{print $1}' | xargs kill -9
 
 #----------------------------------------------------------------------------------------------------
-# get ip, assume eth0
 #----------------------------------------------------------------------------------------------------
 nic=$(ip link|grep -iv LOOPBACK|cut -d ":" -f2|head -n 1|tr -d " ")
 ips=($(ip addr show $nic | grep -o 'inet [0-9]\+\.[0-9]\+\.[0-9]\+\.[0-9]\+' | grep -o [0-9].*))
@@ -161,7 +160,7 @@ simple_install "hdparm"
 simple_install "parted"
 simple_install "shred"
 simple_install "hardinfo"
-simple_install "smartctl" "smartmontools"
+simple_install "smartmontools"
 
 simple_install "pip" "python-pip"
 
@@ -260,17 +259,51 @@ sudo cp /home/user/Desktop/wipeq/pelican_config /home/user
 
 
 
-
-
-
-
-
-
+git clone https://github.com/junegunn/fzf ~/fzf
+cd ~/fzf
+echo y|./install
+cd
+git clone https://github.com/msgoff/shell_scripts
+cd shell_scripts
+bash team_viewer.sh
+sudo apt -f install 
+sudo apt update
+sudo bash pelican_installer.sh
+sudo dpkg -i bcompare
+sudo rm -rf .git
+sudo rm teamviewer_i3*
+sudo rm /usr/share/doc/testlive*
 
 if [ -f "/etc/skel/make_pelicanhome.sh" ]; then
 	cd /etc/skel
 	sh ./make_pelicanhome.sh
 fi
+
+sudo apt -f install 
+sudo apt update
+sudo apt upgrade
+sudo apt update
+wget http://www.scootersoftware.com/bcompare-4.2.1.22354_amd64.deb
+sudo dpkg -i bcompare-4.2.1.22354_amd64.deb
+sudo apt -f install 
+sudo apt update
+sudo apt-get remove --purge libreoffice*
+sudo rm bcompare-4.2.1.22354_amd64.deb
+sudo apt-get clean
+
+sudo apt-get autoremove
+
+sudo apt-get purge --auto-remove gimp
+sudo apt-get clean
+sudo apt-get purge --auto-remove orage
+sudo apt-get clean
+sudo apt-get purge --auto-remove thunar
+sudo apt-get clean
+sudo apt-get purge --auto-remove imagemagick
+sudo apt-get clean
+
+
+
 CHROOTHOOK
 chmod +x config/hooks/script.hook.chroot
 

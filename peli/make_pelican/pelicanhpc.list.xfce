@@ -7,7 +7,14 @@ task-xfce-desktop
 # keyboard layout in tty
 console-data console-setup console-common
 # basic stuff needed for cluster setup
+qemu 
+kvm
+zenmap
+nmap
 nginx
+htop
+ntop
+etherape
 hdparm
 parted
 hardinfo
@@ -25,10 +32,10 @@ bpython
 pdfgrep
 # oof2 dependency
 python-gtk2-dev libgnomecanvas2-dev libmagick++-dev
-#liblapack-dev bison
+liblapack-dev bison
 # configuration and tools
-dialog rsync fping geeqie pssh lm-sensors
-xsensors gnuplot qtiplot xpdf csh tcsh ksh bc rar unrar
+dialog rsync fping pssh lm-sensors
+gnuplot bc rar unrar
 gsmartcontrol 
 gparted 
 zip unzip dsh debootstrap syslinux pxelinux live-build
@@ -36,16 +43,10 @@ smartmontools
 hardinfo
 # WOL
 etherwake beep
-debconf-utils arno-iptables-firewall
-# openmpi
-libopenmpi-dev openmpi-bin openmpi-doc
-# dynare
-dynare dynare-doc
-# gretl
-gretl gretl-data gretl-doc gretl-common
+debconf-utils 
 git wget vim
-# ganglia, firewall
-ganglia-monitor gmetad libganglia1 ganglia-webfrontend
+
+
 librrds-perl librrd2-dev firefox-esr
 php5 rrdtool php5-gd
 # Python
