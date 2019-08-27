@@ -1,27 +1,47 @@
 git clone https://github.com/junegunn/fzf
-sudo apt-get update -y
-sudo apt-get install software-properties-common python-software-properties
-
-sudo apt-get install build-essential libssl-dev libffi-dev python-dev -y
-sudo apt-get install build-essential -y
-sudo apt-get install cmake -y
-sudo apt-get install g++ gfortran -y
-sudo apt-get install git -y
-sudo apt-get install libcurl3-dev python-pip build-essential python-dev python-setuptools python-numpy -y
-sudo apt-get install libcurl3-dev -y
-sudo apt-get install libncurses5-dev libncursesw5-dev
-sudo apt-get install libtool automake -y
-sudo apt-get install libtool-bin -y
-sudo apt-get install lynis -y
-sudo apt-get install neovim -y
-sudo apt-get install nodejs-legacy npm ipython ipython-notebook libzmq3-dev
-sudo apt-get install postgresql postgresql-contrib -y
-sudo apt-get install python-pip -y
-sudo apt-get install screen git -y
-sudo apt-get install w3m -y
-sudo apt-get install qemu-kvm libvirt-bin virtinst bridge-utils cpu-checker -y
-sudo apt-get remove unity-webapps-common  -y
-sudo apt install bison m4 flex -y
+sudo apt update -y
+sudo apt install software-properties-common -y
+sudo apt install python-software-properties -y
+sudo apt install build-essential -y
+sudo apt install libssl-dev -y
+sudo apt install libffi-dev -y
+sudo apt install python-dev -y
+sudo apt install build-essential -y
+sudo apt install cmake -y
+sudo apt install g++ -y
+sudo apt install gfortran -y
+sudo apt install git -y
+sudo apt install libcurl3-dev
+sudo apt install python-pip
+sudo apt install build-essential
+sudo apt install python-dev
+sudo apt install python-setuptools
+sudo apt install python-numpy -y
+sudo apt install libcurl3-dev -y
+sudo apt install libncurses5-dev
+sudo apt install libncursesw5-dev
+sudo apt install libtool
+sudo apt install automake -y
+sudo apt install libtool-bin -y
+sudo apt install lynis -y
+sudo apt install neovim -y
+sudo apt install nodejs-legacy -y
+sudo apt install npm -y
+sudo apt install ipython -y
+sudo apt install ipython-notebook -y
+sudo apt install libzmq3-dev -y
+sudo apt install postgresql postgresql-contrib -y
+sudo apt install python-pip3 -y
+sudo apt install screen git -y
+sudo apt install w3m -y
+sudo apt install qemu-kvm
+sudo apt install libvirt-bin
+sudo apt install virtinst
+sudo apt install bridge-utils 
+sudo apt install cpu-checker -y
+sudo apt install bison
+sudo apt install m4 
+sudo apt install flex -y
 sudo apt install codesearch -y
 sudo apt install golang-go -y
 sudo apt install ncurses -y 
@@ -29,46 +49,45 @@ sudo apt install ncurses-devel -y
 sudo apt install nfs-common -y
 sudo apt install parallel -y 
 sudo apt install silversearcher-ag -y
-sudo pip install -U pip
-sudo pip install bpython
-sudo pip install asciitree
-sudo pip install BeautifulSoup4
-sudo pip install html5lib
-sudo pip install jupyter pandas tqdm requests selenium 
-sudo pip install psycopg2
-sudo pip install redis
-sudo pip install requests
-sudo pip install requests[security] 
-sudo pip install pandas 
-sudo pip install virtualenv 
-sudo pip install jupyter 
-sudo pip install pyparsing 
-sudo pip install pytz 
-sudo pip install pyzmq 
-sudo pip install six 
-sudo pip install tornado 
-sudo pip install jsonschema
-sudo pip install selenium
-sudo pip install selenium 
-sudo pip install sklearn 
-sudo pip install nltk 
-sudo pip install certifi 
-sudo pip install scikit-learn 
-sudo pip install tqdm 
-sudo pip install natsort 
-sudo pip install xlwt 
-sudo pip install xmltodict
-sudo pip install tqdm
-sudo pip install --upgrade autopep8
-sudo pip install whitenoise 
-sudo pip install lxml 
-sudo pip install django 
-sudo pip install redis
-sudo apt-get install \
-     apt-transport-https \
-     ca-certificates \
-     curl \
-     python-software-properties
+sudo pip3 install -U pip
+sudo pip3 install bpython
+sudo pip3 install asciitree
+sudo pip3 install BeautifulSoup4
+sudo pip3 install html5lib
+sudo pip3 install jupyter pandas tqdm requests selenium 
+sudo pip3 install psycopg2
+sudo pip3 install redis
+sudo pip3 install requests
+sudo pip3 install requests[security] 
+sudo pip3 install pandas 
+sudo pip3 install virtualenv 
+sudo pip3 install jupyter 
+sudo pip3 install pyparsing 
+sudo pip3 install pytz 
+sudo pip3 install pyzmq 
+sudo pip3 install six 
+sudo pip3 install tornado 
+sudo pip3 install jsonschema
+sudo pip3 install selenium
+sudo pip3 install selenium 
+sudo pip3 install sklearn 
+sudo pip3 install nltk 
+sudo pip3 install certifi 
+sudo pip3 install scikit-learn 
+sudo pip3 install tqdm 
+sudo pip3 install natsort 
+sudo pip3 install xlwt 
+sudo pip3 install xmltodict
+sudo pip3 install tqdm
+sudo pip3 install --upgrade autopep8
+sudo pip3 install whitenoise 
+sudo pip3 install lxml 
+sudo pip3 install django 
+sudo pip3 install redis
+sudo apt install apt-transport-https
+sudo apt install ca-certificates 
+sudo apt install curl
+sudo apt install python-software-properties
 
-cp  bashrc ~/.bashrc
+cp bashrc ~/.bashrc
 wget http://www.scootersoftware.com/bcompare-4.2.1.22354_amd64.deb
