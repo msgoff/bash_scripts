@@ -1,5 +1,5 @@
 cp bashrc ~/.bashrc
-git clone https://github.com/junegunn/fzf
+#git clone https://github.com/junegunn/fzf
 sudo apt install apt-transport-https
 sudo apt install automake -y
 sudo apt install bison
