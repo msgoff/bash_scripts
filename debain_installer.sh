@@ -88,4 +88,3 @@ sudo pip3 install virtualenv
 sudo pip3 install whitenoise 
 sudo pip3 install xlwt 
 sudo pip3 install xmltodict
-wget http://www.scootersoftware.com/bcompare-4.2.1.22354_amd64.deb
