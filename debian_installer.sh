@@ -32,21 +32,17 @@ sudo apt install lynis -y
 sudo apt install m4 
 sudo apt install ncurses-devel -y
 sudo apt install ncurses -y 
-sudo apt install neovim -y
 sudo apt install nfs-common -y
-sudo apt install nodejs-legacy -y
-sudo apt install npm -y
 sudo apt install parallel -y 
-sudo apt install postgresql postgresql-contrib -y
-sudo apt install python-dev
-sudo apt install python-dev -y
-sudo apt install python-numpy -y
-sudo apt install python-pip
-sudo apt install python-pip3 -y
-sudo apt install python-setuptools
-sudo apt install python-software-properties
-sudo apt install python-software-properties -y
-sudo apt install qemu-kvm
+sudo apt install postgresql
+sudo apt install postgresql-contrib -y
+sudo apt install python3-dev -y
+sudo apt install python3-numpy -y
+sudo apt install python3-pip
+sudo apt install python3-pip -y
+sudo apt install python3-setuptools
+sudo apt install python3-software-properties -y
+sudo apt install qemu-kvm -y
 sudo apt install screen git -y
 sudo apt install silversearcher-ag -y
 sudo apt install software-properties-common -y
