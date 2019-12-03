@@ -6,11 +6,6 @@ cat "$1" |grep "$2">/tmp/rmf
 rm $(head -n $(echo $(less /tmp/rmf | wc -l) -1 | bc) /tmp/rmf |cut -d" " -f2-|sed -re 's/\^s//g')
 }
 
-
-#git clone --depth 1 https://github.com/junegunn/fzf.git ~/.fzf
-#~/.fzf/install
-
-
 replace(){
 cat $1
 i="True"
@@ -26,14 +21,6 @@ done
 
 }
 
-
-loop(){
-for line in $(cat $1);do $2 $line;done
-}
-
-split_lines(){
-pg $1 | sed -re 's/\./\n/g'|sed -re 's/^\s+//g'
-}
 
 url ()
 {
@@ -61,13 +48,7 @@ vocab(){
 pg $1 | sed -re 's/\./\n/g'|sed -re 's/^\s//g'|sed -re 's/\s/\n/g'|grep -ivwf stop_words|sed -re 's/\,|:|\(|\)|\[|\]|\"|\?//g'|grep -v "[0-9]"|sed -n '/.\{5\}/p'|sed -re "s/^'|\-\-$|;//g" 
 }
 
-frequency(){
-sort|uniq -c | sort -n
-}
 
-frequency_filter(){
-tail -n $1|sed -re 's/^\s+//g' | cut -d' ' -f2
-}
 
 numbers(){
 pg $1 | grep -P "[0-9]+(\.[0-9])*"
