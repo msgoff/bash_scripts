@@ -13,7 +13,6 @@ find $source_dir -name "*."$line
 
 
 
-/media/Knowledge/temp_storage
 
 
 find . -type f |rev| cut -d"." -f1 |rev|sort|uniq -c | sort -n d"." -f1 |rev
@@ -25,24 +24,12 @@ for line in $(cat file_types);do sort_by_file_types;done
 
 
 
-#works
-mv_ops(){
-echo "input file type"
-read ftype
-mkdir /media/Knowledge/Storage/ft_"$ftype"
-find -name "*."$ftype -exec mv {} /media/Knowledge/Storage/ft_"$ftype"/ --backup=t  \;
-}
-
-
-#works
-flattenDir(){ local source="$1"; local  dest="$2"; find "$source"  -mindepth 2 -type f -exec mv --backup=t  '{}' "$source" \;; }
 
 ft_stats(){
 find . -type f |rev| cut -d"." -f1 |rev|sort|uniq -c | sort -n|sed -re 's/^\s+//g'|cut -d' ' -f2
 }
 
 
-for line in $(cat merge_source_knowledge); do grep $line source_dir_md5s|cut -d" " -f2-|sed -re 's/^\s+//g';done >> files_to_copy_to_source
 
 
 gen=(x for x in set(s) if x not in set(k))
