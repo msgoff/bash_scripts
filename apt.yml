@@ -141,13 +141,6 @@
         name: "lib{{python_installed.stdout}}-dev"
         update_cache: yes
     
-    - name: Install aps from requirements.txt using Python 3.*
-      pip:
-        requirements: "{{project_path}}/backend/requirements.txt"
-        virtualenv: "{{project_path}}/../venv"
-        virtualenv_python: "{{python_installed.stdout}}"
-      become: yes
-      become_user: user
 
     - name: Download NodeJS archive
       shell: curl -sL https://deb.nodesource.com/setup_{{nodejs_major_version}}.x | bash -
