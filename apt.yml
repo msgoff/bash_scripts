@@ -6,7 +6,15 @@
     project_path:  "{{ ansible_facts.env['PWD'] }}/.."
     nodejs_major_version: 14
   tasks:   
-  
+    - name: Download BCompare and install
+      apt:
+        deb: https://www.scootersoftware.com/bcompare-4.3.7.25118_amd64.deb 
+    
+    - name: ShellCheck 
+      apt:
+        name: shellcheck 
+        update_cache: yes
+
     - name: sshfs 
       apt:
         name: sshfs 
