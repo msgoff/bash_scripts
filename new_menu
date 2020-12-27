@@ -370,30 +370,46 @@ vim menu.sh
 
 }
 
+repo_count_div_30(){
+        echo $(($(cat /tmp/repos |tr ',' '\n'|grep clone_url|wc -l ) % 30))
+}
 
 
 g_hub_repos(){
+if [[ ! -f /tmp/page_number ]];
+then
+        echo 1 > /tmp/page_number
+fi
 
-echo "input username"
 
-read username
+if [[ ! -f /tmp/username ]];
+	then
+	echo "input username"
+        read username
+        echo $username > /tmp/username
+	echo $username
+fi
 
-w3m https://api.github.com/users/$username/repos > /tmp/repos
-
-less /tmp/repos  | sed -re 's/\,/\n/g'|grep html_url|cut -d":" -f2-|tr -d '"'|sort | uniq > data
-
+page_number="$(cat /tmp/page_number|head -n 1|tr -d ' ')"
+echo $page_number
+username="$(cat /tmp/username|head -n 1|tr -d ' ')"
+echo $username
+w3m https://api.github.com/users/$username/repos?page=$page_number > /tmp/repos
+less /tmp/repos  | sed -re 's/\,/\n/g'|grep clone_url|cut -d":" -f2-|tr -d '"'|sort | uniq > data
 cat data >> repos
-
+get_next_page="$(repo_count_div_30)"
+if [[ $get_next_page -eq 0 ]];
+then
+        echo "$(( $(cat /tmp/page_number |head -n 1|tr -d ' ') + 1))" > /tmp/page_number
+        g_hub_repos
+fi
 }
 
 
 
 g_clone(){
-
 for line in $(cat data);do git clone "$line".git ;done
-
 pause
-
 }
 
 
@@ -420,17 +436,6 @@ pause
 
 
 
-urls ()
-
-{
-
-	cat data | grep -P "(?:http|href).*?(\s|$)|\w+\.(com|org|net|gov).*?(\s|$)" -o | sort > /tmp/data
-
-	cat /tmp/data > data
-
-}
-
-
 
 flatten_dir(){
 
@@ -449,9 +454,6 @@ Install(){
 echo "installing w3m git redis vim fzf"
 
 echo ""
-
-
-
 sudo apt-get install w3m git redis vim;
 
 git clone --depth 1 https://github.com/junegunn/fzf.git ~/.fzf
