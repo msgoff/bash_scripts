@@ -394,9 +394,9 @@ page_number="$(cat /tmp/page_number|head -n 1|tr -d ' ')"
 echo $page_number
 username="$(cat /tmp/username|head -n 1|tr -d ' ')"
 echo $username
-w3m https://api.github.com/users/$username/repos?page=$page_number > /tmp/repos
-less /tmp/repos  | sed -re 's/\,/\n/g'|grep clone_url|cut -d":" -f2-|tr -d '"'|sort | uniq > data
-cat data >> repos
+w3m https://api.github.com/users/$username/repos?page=$page_number >> /tmp/repos
+less /tmp/repos  | sed -re 's/\,/\n/g'|grep clone_url|cut -d":" -f2-|tr -d '"'|sort | uniq >> data
+cat data|sort|uniq > repos
 get_next_page="$(repo_count_div_30)"
 if [[ $get_next_page -eq 0 ]];
 then
