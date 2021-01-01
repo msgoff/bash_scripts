@@ -17,5 +17,5 @@ apk add zlib-dev
 apk add ocaml-findlib
 apk add dune
 apk add python3-dev
- setup-xorg-base xfce4 xfce4-terminal lightdm-gtk-greeter xfce-polkit xfce4-screensaver consolekit2 dbus-x11 sudo
- apk add firefox-esr
+setup-xorg-base xfce4 xfce4-terminal lightdm-gtk-greeter xfce-polkit xfce4-screensaver consolekit2 dbus-x11 sudo
+apk add firefox-esr
