@@ -386,7 +386,7 @@ fi
 
 
 g_clone(){
-for line in $(cat data);do git clone "$line".git ;done
+for line in $(cat data);do git clone "$line" ;done
 pause
 }
 
