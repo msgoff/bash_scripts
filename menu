@@ -130,28 +130,6 @@ grep_forward(){
 
 
 
-#cat $1
-
-#i="True"
-
-#echo "Q to quit"
-
-#delete_patters=""
-
-#while [ "$i" != "Q" ]
-
-#do
-
-#read i j
-
-#delete_patterns+="$i|"
-
-#echo $delete_patters
-
-#sed -re 's/"'${delete_patterns::-1}'"/"'$j'"/g' $1
-
-#done
-
 }
 
 
@@ -436,19 +414,6 @@ pause
 
 
 
-
-flatten_dir(){
-
-output_dir=/media/root/C807-C979/linux_scripts_configs/
-
-move(){  echo $line;ftype=$line; mkdir  $output_dir"$ftype"_ft; find . -type f -name "*."$ftype -exec cp --backup=t {} $output_dir"$ftype"_ft/ \;; }
-
-for line in $(cat /media/Knowledge/ftypes);do dest=$output_dir"$line"_ft;echo $dest;ls $dest|wc -l;move $line;ls $dest|wc -l;done
-
-}
-
-
-
 Install(){
 
 echo "installing w3m git redis vim fzf"
@@ -491,13 +456,13 @@ echo " S.  Set Data File Name                      B.   Browse Data             
 echo "                                                                       "
 echo "SD. Set Working Directory                   GF.   Grep Forward                 W.  Wget Urls "
 echo "                                                                   "
-echo "FD. Flatten Directory by File Type          GB.   Grep Backward                 W.  W3m  Urls"
+echo "                                            GB.   Grep Backward                 W.  W3m  Urls"
 echo ""
 echo " R. reset file back to original             SR.   Sed Replace                  FF.  Firefox Urls"
 echo "                              "
 echo "SF. save file                                                                   G.  list Public Github Repos                    "
 echo " "
-echo " E. Edit Menu                                                                  GC.  Git clone selected Repos"
+echo "                                                                                GC.  Git clone selected Repos"
 echo ""
 echo " I. Install Application Dependencies "
 echo ""
@@ -552,7 +517,6 @@ read_options(){
 
 		U|u) urls ;;
 
-		F|f) flatten_dir ;;
 
 		I|i) Install ;;
 
