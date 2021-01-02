@@ -1,0 +1,2 @@
+s/simple_stmt//g
+s/small_stmt//g
