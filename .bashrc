@@ -116,5 +116,6 @@ fi
 
 xzs(){ fzf --print-query -m --bind ctrl-a:select-all,ctrl-d:deselect-all,ctrl-t:toggle-all; }
 
+source /home/user/bash_scripts/user_defined_functions
 HISTTIMEFORMAT="%d/%m/%y %T "
 
