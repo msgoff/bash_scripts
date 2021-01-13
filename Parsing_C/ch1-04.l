@@ -1,4 +1,6 @@
 %{
+#include "sds.h"
+#include "sdsalloc.h"
 
   enum {
     LOOKUP = 0, /* default - looking rather than defining. */
@@ -10,8 +12,8 @@
 
   int add_word(int type, char *word);
   int lookup_word(char *word);
-  void filter_yytext(char filter[], char *yytext, int yyleng);
-  char filter[] = {'\n', '(', '\t'};
+  //void filter_yytext(char filter[], char *yytext, int yyleng);
+  //char filter[] = {'\n', '(', '\t'};
 %}
 
 %%
@@ -39,16 +41,22 @@
 }
 
 [^a-zA-Z0-9]int[ \t]+[a-zA-Z]+ {
-  printf("TYPE_INT:");
-  filter_yytext(filter, yytext, yyleng);
-  printf("\n");
+  printf("TYPE_INT:"); 
+  sds s = sdsnew(yytext);
+  sdstrim(s," \n(");
+  printf("%s\n",s);
+  sdsfree(s);
 }
 
 [^a-zA-Z0-9]return[ \t]+[0-9] {
       printf("return_statement:");
-      char filter[] = {'r', 'e', 't', 'u', 'n'};
-      filter_yytext(filter, yytext, yyleng);
-    }
+	sds s = sdsnew(yytext);
+  	sdstrim(s," \n(");
+        sdsrange(s,6,10);
+  	sdstrim(s," ");
+	printf("%s\n",s);
+	sdsfree(s);	
+}
 
 "/*".*?"*/" {
   printf("COMMENT:%s\n", yytext);
@@ -146,26 +154,4 @@ int lookup_word(char *word) {
   return LOOKUP; /* not found */
 }
 
-//needs work
-void filter_yytext(char filter[], char *yytext, int yyleng) {
-  int i = 0;
-  int j = 0;
-  int ignore_char = 0;
-  int x = sizeof(&filter);
-  int y = sizeof(int);
-  int array_length = x / y;
-  char last_seen = 'z';
-
-  for (i = 0; i < yyleng; i++) {
-    ignore_char = 0;
-    for (j = 0; j < array_length; j++) {
-      if (yytext[i] == filter[j]) {
-        ignore_char = 1;
-      }
-    }
-    if (ignore_char == 0) {
-        printf("%c", yytext[i]);
-      }
-    }
-  }
 

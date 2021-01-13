@@ -1,5 +1,8 @@
 %{
 #include <stdio.h>
+#include "sds.h"
+#include "sdsalloc.h"
+
 %}
 
 %%
@@ -30,11 +33,6 @@ EXIT_SUCCESS		{ printf("RETURN_MESSAGE "); }
 \".*?\"			{ printf("STRING "); } 
 "puts" 			{ printf("PUTS "); } 
 "auto"			{ printf("AUTO "); }
-"_Bool"			{ printf("BOOL "); }
-"break"			{ printf("BREAK "); }
-"case"			{ printf("CASE "); }
-"char"			{ printf("CHAR "); }
-"_Complex"		{ printf("COMPLEX "); }
 "const"			{ printf("CONST "); }
 "continue"		{ printf("CONTINUE "); }
 "default"		{ printf("DEFAULT "); }
@@ -42,14 +40,7 @@ EXIT_SUCCESS		{ printf("RETURN_MESSAGE "); }
 "double"		{ printf("DOUBLE "); }
 "else"			{ printf("ELSE "); }
 "enum"			{ printf("ENUM "); }
-"extern"		{ printf("EXTERN "); }
-"float"			{ printf("FLOAT "); }
-"for"			{ printf("FOR "); }
 "goto"			{ printf("GOTO "); }
-"if"			{ printf("IF "); }
-"_Imaginary"		{ printf("IMAGINARY "); }
-"inline"		{ printf("INLINE "); }
-"int"			{ printf("INT "); }
 "long"			{ printf("LONG "); }
 "register"		{ printf("REGISTER "); }
 "restrict"		{ printf("RESTRICT "); }
