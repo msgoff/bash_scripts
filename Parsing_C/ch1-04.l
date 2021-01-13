@@ -12,18 +12,22 @@
 
   int add_word(int type, char *word);
   int lookup_word(char *word);
-  //void filter_yytext(char filter[], char *yytext, int yyleng);
-  //char filter[] = {'\n', '(', '\t'};
+  int line_no = 0;
+  int col_number = 0;
+  int char_offset = 0;
 %}
 
 %%
+.	{ char_offset++; col_number++; }
+\n { line_no++; printf("%d\n",line_no);state = LOOKUP; char_offset++; col_number=0;  } /* end of line, return to default state */
 
-\n { state = LOOKUP; } /* end of line, return to default state */
-
-^#include { state = INCLUDE; }
-
+^#include { printf("%d",col_number); state = INCLUDE; char_offset+=yyleng; col_number+=yyleng; }
 "<"[a-zA-Z]+".h>" {
+  printf("col_number:%d",col_number);
+  char_offset+=yyleng;
+  col_number+=yyleng;
   printf("include:%s\n", yytext);
+  
   /* a normal word, define it or look it up */
   if (state != LOOKUP) {
     /* define the current word */
@@ -31,13 +35,161 @@
   } else {
     switch (lookup_word(yytext)) {
     case INCLUDE:
-      printf("%s: include\n", yytext);
+      printf("%s: include", yytext);
       break;
     default:
-      printf("%s:  don't recognize\n", yytext);
+      printf("%s:  don't recognize", yytext);
       break;
     }
   }
+}
+
+
+"int argc" { 
+	printf("col_number:%d",col_number);
+	char_offset+=yyleng; 
+	col_number+=yyleng; 
+}
+
+
+"char *argv[]" { 
+	printf("\nargv:line_number:%d,col_number:%d\n",line_no,col_number);
+	char_offset+=yyleng; 
+	col_number+=yyleng; 
+}
+
+[^a-zA-Z0-9]int[ \t]+"main(" {
+	printf("\nmain_function:line_number:%d,col_number:%d\n",line_no,col_number);
+	char_offset+=yyleng; 
+	col_number+=yyleng; 
+  
+  printf("MAIN_FUNCTION:"); 
+  sds s = sdsnew(yytext);
+  sdstrim(s," \n(");
+  printf("%s",s);
+  sdsfree(s);
+}
+
+
+"//".*	{ 
+
+	printf("%d",col_number);
+	char_offset+=yyleng; 
+	col_number+=yyleng; 
+	printf("COMMENT:%s",yytext);}
+
+"/*".*?"*/"	{ 
+
+	printf("%d",col_number);
+	char_offset+=yyleng; 
+	col_number+=yyleng; 
+        printf("COMMENT:%s",yytext);}
+
+
+[^a-zA-Z0-9]return[ \t]+[0-9] {
+      
+	printf("%d",col_number);
+	char_offset+=yyleng; 
+	col_number+=yyleng; 
+
+printf("return_statement:");
+	sds s = sdsnew(yytext);
+  	sdstrim(s," \n(");
+        sdsrange(s,6,10);
+  	sdstrim(s," ");
+	printf("%s",s);
+	sdsfree(s);	
+}
+
+[^a-zA-Z0-9]int[ \t]+[a-zA-Z]+[ \t]+"="[ \t]+[0-9]+ {
+  
+	printf("%d",col_number);
+	char_offset+=yyleng; 
+	col_number+=yyleng; 
+
+printf("TYPE_INT_ASSIGNED_VALUE:"); 
+  sds s = sdsnew(yytext);
+  sdstrim(s," \n(");
+  sdsrange(s,4,20);
+  printf("%s",s);
+  sdsfree(s);
+}
+
+"(".*?")"	{
+	
+	printf("%d",col_number);
+	char_offset+=yyleng; 
+	col_number+=yyleng; 
+		printf("expression:%s",yytext);
+}
+
+
+
+
+
+
+%%
+/*
+"puts" 			{ printf("PUTS "); } 
+"auto"			{ printf("AUTO "); }
+"const"			{ printf("CONST "); }
+"continue"		{ printf("CONTINUE "); }
+"default"		{ printf("DEFAULT "); }
+"do"			{ printf("DO "); }
+"double"		{ printf("DOUBLE "); }
+"else"			{ printf("ELSE "); }
+"enum"			{ printf("ENUM "); }
+"goto"			{ printf("GOTO "); }
+"long"			{ printf("LONG "); }
+"register"		{ printf("REGISTER "); }
+"restrict"		{ printf("RESTRICT "); }
+"return"		{ printf("RETURN "); }
+"short"			{ printf("SHORT "); }
+"signed"		{ printf("SIGNED "); }
+"sizeof"		{ printf("SIZEOF "); }
+"static"		{ printf("STATIC "); }
+"struct"		{ printf("STRUCT "); }
+"switch"		{ printf("SWITCH "); }
+"typedef"		{ printf("TYPEDEF "); }
+"union"			{ printf("UNION "); }
+"unsigned"		{ printf("UNSIGNED "); }
+"void"			{ printf("VOID "); }
+"volatile"		{ printf("VOLATILE "); }
+"while"			{ printf("WHILE \n"); }
+"("			{ printf("LPAREN \n"); }
+")"			{ printf("RPAREN \n"); }
+"{"			{ printf("LBRACE \n"); }
+"}"			{ printf("RBRACE \n"); }
+"..."			{ printf("ELLIPSIS "); }
+">>="			{ printf("RIGHT_ASSIGN "); }
+"<<="			{ printf("LEFT_ASSIGN "); }
+"+="			{ printf("ADD_ASSIGN "); }
+"-="			{ printf("SUB_ASSIGN "); }
+"*="			{ printf("MUL_ASSIGN "); }
+"/="			{ printf("DIV_ASSIGN "); }
+"%="			{ printf("MOD_ASSIGN "); }
+"&="			{ printf("AND_ASSIGN "); }
+"^="			{ printf("XOR_ASSIGN "); }
+"|="			{ printf("OR_ASSIGN "); }
+">>"			{ printf("RIGHT_OP "); }
+"<<"			{ printf("LEFT_OP "); }
+"++"			{ printf("INC_OP "); }
+"--"			{ printf("DEC_OP "); }
+"->"			{ printf("PTR_OP "); }
+"&&"			{ printf("AND_OP "); }
+"||"			{ printf("OR_OP "); }
+"<="			{ printf("LE_OP "); }
+">="			{ printf("GE_OP "); }
+"=="			{ printf("EQ_OP "); }
+"!="			{ printf("NE_OP "); }
+[\n]+ ;
+
+[^a-zA-Z0-9]int[ \t]+"argc" {
+  printf("int argc"); 
+  sds s = sdsnew(yytext);
+  sdstrim(s," \n(");
+  printf("%s\n",s);
+  sdsfree(s);
 }
 
 [^a-zA-Z0-9]int[ \t]+[a-zA-Z]+ {
@@ -48,49 +200,18 @@
   sdsfree(s);
 }
 
-[^a-zA-Z0-9]return[ \t]+[0-9] {
-      printf("return_statement:");
-	sds s = sdsnew(yytext);
-  	sdstrim(s," \n(");
-        sdsrange(s,6,10);
-  	sdstrim(s," ");
-	printf("%s\n",s);
-	sdsfree(s);	
+
+
+[^a-zA-Z0-9]char[ \t]+"*"?[ \t]*[a-zA-Z]+"[]"? {
+  printf("TYPE_CHAR:"); 
+  sds s = sdsnew(yytext);
+  sdstrim(s," \n(");
+  printf("%s\n",s);
+  sdsfree(s);
 }
 
-"/*".*?"*/" {
-  printf("COMMENT:%s\n", yytext);
-}
 
-"//".* { printf("COMMENT:%s\n", yytext); }
-"void" { printf("VOID "); }
-"while" { printf("WHILE "); }
-"..." { printf("ELLIPSIS "); }
-">>=" { printf("RIGHT_ASSIGN "); }
-"<<=" { printf("LEFT_ASSIGN "); }
-"+=" { printf("ADD_ASSIGN "); }
-"-=" { printf("SUB_ASSIGN "); }
-"*=" { printf("MUL_ASSIGN "); }
-"/=" { printf("DIV_ASSIGN "); }
-"%=" { printf("MOD_ASSIGN "); }
-"&=" { printf("AND_ASSIGN "); }
-"^=" { printf("XOR_ASSIGN "); }
-"|=" { printf("OR_ASSIGN "); }
-">>" { printf("RIGHT_OP "); }
-"<<" { printf("LEFT_OP "); }
-"++" { printf("INC_OP "); }
-"--" { printf("DEC_OP "); }
-"->" { printf("PTR_OP "); }
-"&&" { printf("AND_OP "); }
-"||" { printf("OR_OP "); }
-"<=" { printf("LE_OP "); }
-">=" { printf("GE_OP "); }
-"==" { printf("EQ_OP "); }
-"!=" { printf("NE_OP "); }
-[\n]+ ;
-. /* ignore anything else */;
-
-%%
+*/
 
 int
 main(int argc, char **argv) {
@@ -105,6 +226,7 @@ main(int argc, char **argv) {
     yyin = file;
   }
   yylex();
+  printf("%d",line_no);
   return 0;
 }
 
@@ -115,6 +237,7 @@ struct word {
   struct word *next;
 };
 
+//"int"[ \t]+"main" { printf("main_function");}
 struct word *word_list; /* first element in word list */
 
 extern void *malloc();
