@@ -18,12 +18,17 @@
 %}
 
 WS [ \t]
-lower [a-z]+
-upper [A-Z]+
-int "0"|[1-9][0-9]*
+LOWER [a-z]+
+UPPER [A-Z]+
+INT "0"|[1-9][0-9]*
 TYPE_DECL_INT [ \t]*int[ \t\n]+
 INCLUDE_PREFIX {WS}*"#"{WS}*"include"{WS}+
 ALPHA_NUMERIC [a-zA-Z0-9]
+STAR "*"
+UNDERSCORE "_"
+LBRACKET "["
+RBRACKET "]"
+SEMICOLON ";"
 
 %%
 [ ]     { char_offset+=1; col_number+=1; }
@@ -71,16 +76,16 @@ ALPHA_NUMERIC [a-zA-Z0-9]
   col_number+=yyleng;
   col_number+=1;
 }
-
-"/*".*?"*/" { 
-  printf("comment:line_no:%d:col_number:%d:%s\n",line_no,col_number,yytext);
+"char"{WS}*{STAR}{0,2}{WS}*{LOWER}({ALPHA_NUMERIC}|"_")+({LBRACKET}{INT}{RBRACKET})* {
+  printf("char_typec:line_no:%d:col_number:%d:%s\n",line_no,col_number,yytext);
   char_offset+=yyleng;
   col_number+=yyleng;
   col_number+=1;
 }
 
 
-[^a-zA-Z0-9]return[ \t]+{int} {
+
+[^a-zA-Z0-9]return[ \t]+{INT} {
   if (col_number > 1) {col_number+=1;}
   printf("return_function:line_no:%d:col_number:%d:%s\n",line_no,col_number,yytext);
   char_offset+=yyleng;
@@ -88,7 +93,7 @@ ALPHA_NUMERIC [a-zA-Z0-9]
 }
 
 
-[^a-zA-Z0-9]int[ \t]+[a-zA-Z]+[ \t]+"="[ \t]+[0-9]+ {
+[^a-zA-Z0-9]int[ \t]+[a-zA-Z]+[ \t]+"="[ \t]+{INT} {
   if (col_number > 1) {col_number+=1;}
   sds s = sdsnew(yytext);
   sdstrim(s," \n(");
@@ -168,31 +173,6 @@ ALPHA_NUMERIC [a-zA-Z0-9]
 "!="			{ printf("NE_OP "); }
 [\n]+ ;
 
-[^a-zA-Z0-9]int[ \t]+"argc" {
-  printf("int argc"); 
-  sds s = sdsnew(yytext);
-  sdstrim(s," \n(");
-  printf("%s\n",s);
-  sdsfree(s);
-}
-
-[^a-zA-Z0-9]int[ \t]+[a-zA-Z]+ {
-  printf("TYPE_INT:"); 
-  sds s = sdsnew(yytext);
-  sdstrim(s," \n(");
-  printf("%s\n",s);
-  sdsfree(s);
-}
-
-
-
-[^a-zA-Z0-9]char[ \t]+"*"?[ \t]*[a-zA-Z]+"[]"? {
-  printf("TYPE_CHAR:"); 
-  sds s = sdsnew(yytext);
-  sdstrim(s," \n(");
-  printf("%s\n",s);
-  sdsfree(s);
-}
 
 
 */
