@@ -23,6 +23,7 @@ upper [A-Z]+
 int "0"|[1-9][0-9]*
 TYPE_DECL_INT [ \t]*int[ \t\n]+
 INCLUDE_PREFIX {WS}*"#"{WS}*"include"{WS}+
+ALPHA_NUMERIC [a-zA-Z0-9]
 
 %%
 [ ]     { char_offset+=1; col_number+=1; }
@@ -30,13 +31,13 @@ INCLUDE_PREFIX {WS}*"#"{WS}*"include"{WS}+
 .	{ char_offset++; col_number++; }
 \n { line_no++;state = LOOKUP; char_offset++; col_number=1;  } /* end of line, return to default state */
 
-{INCLUDE_PREFIX}["]{lower}".h"["] {
-  printf("include:line_no:%d:col_number:(%d:%s\n",line_no,col_number,yytext);
+{INCLUDE_PREFIX}["]({ALPHA_NUMERIC}+|"/"|"_")".h"["] {
+  printf("include:line_no:%d:col_number:%d:%s\n",line_no,col_number,yytext);
   char_offset+=yyleng;
   col_number+=yyleng;
   }
 
-{INCLUDE_PREFIX}[<]{lower}".h"[>] {
+{INCLUDE_PREFIX}[<]({ALPHA_NUMERIC}+|"/"|"_")".h"[>] {
   printf("include:line_no:%d:col_number:%d:%s\n",line_no,col_number,yytext);
   char_offset+=yyleng;
   col_number+=yyleng;
@@ -58,7 +59,6 @@ INCLUDE_PREFIX {WS}*"#"{WS}*"include"{WS}+
 
 
 {TYPE_DECL_INT}"main(" {
-  printf("%d\t",yyleng);
   printf("main_function:line_no:%d:col_number:%d:%s\n",line_no,col_number,yytext);
   char_offset+=yyleng;
   col_number+=yyleng;
