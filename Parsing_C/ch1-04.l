@@ -12,115 +12,99 @@
 
   int add_word(int type, char *word);
   int lookup_word(char *word);
-  int line_no = 0;
-  int col_number = 0;
+  int line_no = 1;
+  int col_number = 1;
   int char_offset = 0;
 %}
 
-%%
-.	{ char_offset++; col_number++; }
-\n { line_no++; printf("%d\n",line_no);state = LOOKUP; char_offset++; col_number=0;  } /* end of line, return to default state */
+WS [ \t]
+lower [a-z]+
+upper [A-Z]+
+int "0"|[1-9][0-9]*
+TYPE_DECL_INT [ \t]*int[ \t\n]+
+INCLUDE_PREFIX {WS}*"#"{WS}*"include"{WS}+
 
-^#include { printf("%d",col_number); state = INCLUDE; char_offset+=yyleng; col_number+=yyleng; }
-"<"[a-zA-Z]+".h>" {
-  printf("col_number:%d",col_number);
+%%
+[ ]     { char_offset+=1; col_number+=1; }
+\t	{ char_offset+=4;col_number+=4; }
+.	{ char_offset++; col_number++; }
+\n { line_no++;state = LOOKUP; char_offset++; col_number=1;  } /* end of line, return to default state */
+
+{INCLUDE_PREFIX}["]{lower}".h"["] {
+  printf("include:line_no:%d:col_number:(%d:%s\n",line_no,col_number,yytext);
   char_offset+=yyleng;
   col_number+=yyleng;
-  printf("include:%s\n", yytext);
-  
-  /* a normal word, define it or look it up */
-  if (state != LOOKUP) {
-    /* define the current word */
-    add_word(state, yytext);
-  } else {
-    switch (lookup_word(yytext)) {
-    case INCLUDE:
-      printf("%s: include", yytext);
-      break;
-    default:
-      printf("%s:  don't recognize", yytext);
-      break;
-    }
   }
-}
+
+{INCLUDE_PREFIX}[<]{lower}".h"[>] {
+  printf("include:line_no:%d:col_number:%d:%s\n",line_no,col_number,yytext);
+  char_offset+=yyleng;
+  col_number+=yyleng;
+  }
 
 
 "int argc" { 
-	printf("col_number:%d",col_number);
-	char_offset+=yyleng; 
-	col_number+=yyleng; 
+  printf("argc:line_no:%d:col_number:%d:%s\n",line_no,col_number,yytext);
+  char_offset+=yyleng;
+  col_number+=yyleng;
 }
 
 
 "char *argv[]" { 
-	printf("\nargv:line_number:%d,col_number:%d\n",line_no,col_number);
-	char_offset+=yyleng; 
-	col_number+=yyleng; 
+  printf("argv:line_no:%d:col_number:%d:%s\n",line_no,col_number,yytext);
+  char_offset+=yyleng;
+  col_number+=yyleng;
 }
 
-[^a-zA-Z0-9]int[ \t]+"main(" {
-	printf("\nmain_function:line_number:%d,col_number:%d\n",line_no,col_number);
-	char_offset+=yyleng; 
-	col_number+=yyleng; 
-  
-  printf("MAIN_FUNCTION:"); 
-  sds s = sdsnew(yytext);
-  sdstrim(s," \n(");
-  printf("%s",s);
-  sdsfree(s);
+
+{TYPE_DECL_INT}"main(" {
+  printf("%d\t",yyleng);
+  printf("main_function:line_no:%d:col_number:%d:%s\n",line_no,col_number,yytext);
+  char_offset+=yyleng;
+  col_number+=yyleng;
 }
 
 
 "//".*	{ 
-
-	printf("%d",col_number);
-	char_offset+=yyleng; 
-	col_number+=yyleng; 
-	printf("COMMENT:%s",yytext);}
-
-"/*".*?"*/"	{ 
-
-	printf("%d",col_number);
-	char_offset+=yyleng; 
-	col_number+=yyleng; 
-        printf("COMMENT:%s",yytext);}
-
-
-[^a-zA-Z0-9]return[ \t]+[0-9] {
-      
-	printf("%d",col_number);
-	char_offset+=yyleng; 
-	col_number+=yyleng; 
-
-printf("return_statement:");
-	sds s = sdsnew(yytext);
-  	sdstrim(s," \n(");
-        sdsrange(s,6,10);
-  	sdstrim(s," ");
-	printf("%s",s);
-	sdsfree(s);	
+  printf("comment:line_no:%d:col_number:%d:%s\n",line_no,col_number,yytext);
+  char_offset+=yyleng;
+  col_number+=yyleng;
+  col_number+=1;
 }
 
-[^a-zA-Z0-9]int[ \t]+[a-zA-Z]+[ \t]+"="[ \t]+[0-9]+ {
-  
-	printf("%d",col_number);
-	char_offset+=yyleng; 
-	col_number+=yyleng; 
+"/*".*?"*/" { 
+  printf("comment:line_no:%d:col_number:%d:%s\n",line_no,col_number,yytext);
+  char_offset+=yyleng;
+  col_number+=yyleng;
+  col_number+=1;
+}
 
-printf("TYPE_INT_ASSIGNED_VALUE:"); 
+
+[^a-zA-Z0-9]return[ \t]+{int} {
+  if (col_number > 1) {col_number+=1;}
+  printf("return_function:line_no:%d:col_number:%d:%s\n",line_no,col_number,yytext);
+  char_offset+=yyleng;
+  col_number+=yyleng;
+}
+
+
+[^a-zA-Z0-9]int[ \t]+[a-zA-Z]+[ \t]+"="[ \t]+[0-9]+ {
+  if (col_number > 1) {col_number+=1;}
   sds s = sdsnew(yytext);
   sdstrim(s," \n(");
   sdsrange(s,4,20);
-  printf("%s",s);
+  printf("int_assigned_value:line_no:%d:col_number:%d:%s\n",line_no,col_number,s);
+  char_offset+=yyleng;
+  col_number+=yyleng;
   sdsfree(s);
 }
 
+
 "(".*?")"	{
-	
-	printf("%d",col_number);
-	char_offset+=yyleng; 
-	col_number+=yyleng; 
-		printf("expression:%s",yytext);
+  //if (col_number > 1) {col_number+=1;}
+  printf("expression:line_no:%d:col_number:%d:%s\n",line_no,col_number,yytext);
+  char_offset+=yyleng;
+  col_number+=yyleng;
 }
 
 
@@ -237,7 +221,6 @@ struct word {
   struct word *next;
 };
 
-//"int"[ \t]+"main" { printf("main_function");}
 struct word *word_list; /* first element in word list */
 
 extern void *malloc();
