@@ -25,9 +25,11 @@
 
 LOWER [a-z]+
 UPPER [A-Z]+
-INT "0"|[1-9][0-9]*
-FLOAT {INT}+"."{INT}+f
-DOUBLE {INT}+"."{INT}+
+DIGIT [0-9]
+NONZEROINT [1-9][0-9]*
+ZERO "0"
+FLOAT ({ZERO}|{NONZEROINT}+)"."{DIGIT}+f
+DOUBLE ({ZERO}|{NONZEROINT}+)"."{DIGIT}+
 
 
 TYPE_DECL_INT [ \t]*int[ \t\n]+
@@ -52,7 +54,7 @@ ITYPE	{IWORD}({WS}{IWORD})*
 \n { line_no++;state = LOOKUP; char_offset++; col_number=1;  } /* end of line, return to default state */
 
 
-{ITYPE}({WS}+{STAR}{0,2}{WS}*|{WS}*{STAR}{0,2}{WS}+){CID}({LBRACKET}({INT}+|""){RBRACKET})* {
+{ITYPE}({WS}+{STAR}{0,2}{WS}*|{WS}*{STAR}{0,2}{WS}+){CID}({LBRACKET}({NONZEROINT}+|""){RBRACKET})* {
 	print_location("type_def");}
 
 {INCLUDE_PREFIX}["]([:alnum:]+|"/"|"_")".h"["] {
@@ -67,7 +69,7 @@ ITYPE	{IWORD}({WS}{IWORD})*
 "//".*	{ 
 	print_location("comment");}
 
-[^a-zA-Z0-9]return[ \t]+{INT} {
+[^a-zA-Z0-9]return[ \t]+{DIGIT} {
   if (col_number > 1) {col_number+=1;}
 	print_location("return_statement");}
 
@@ -91,7 +93,7 @@ ITYPE	{IWORD}({WS}{IWORD})*
   col_number+=yyleng;
   sdsfree(s);}
 
-[^a-zA-Z0-9]int[ \t]+[a-zA-Z]+[ \t]+"="[ \t]+{INT}({WS}*","{WS}*{INT})* {
+[^a-zA-Z0-9]int[ \t]+[a-zA-Z]+[ \t]+"="[ \t]+({ZERO}|{NONZEROINT}+) {
   if (col_number > 1) {col_number+=1;}
   sds s = sdsnew(yytext);
   sdstrim(s," \n(");
