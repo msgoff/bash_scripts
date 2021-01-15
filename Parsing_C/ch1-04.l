@@ -46,11 +46,11 @@ ITYPE	{IWORD}({WS}{IWORD})*
 \n { line_no++;state = LOOKUP; char_offset++; col_number=1;  } /* end of line, return to default state */
 
 
-{ITYPE}{WS}+{CID} {
+{ITYPE}({WS}+{STAR}{0,2}{WS}*|{WS}*{STAR}{0,2}{WS}+){CID}({LBRACKET}({INT}+|""){RBRACKET})* {
   printf("type_def:line_no:%d:col_number:%d:%s\n",line_no,col_number,yytext);
   char_offset+=yyleng;
   col_number+=yyleng;
-  }
+}
 
 
 
