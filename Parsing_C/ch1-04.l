@@ -130,43 +130,24 @@ ITYPE	{IWORD}({WS}{IWORD})*
 "=="			{ print_location("EQ_OP"); }
 "!="			{ print_location("NE_OP"); }
 
+"puts" 			{ print_location("PUTS"); } 
+"auto"			{ print_location("AUTO"); }
+"continue"		{ print_location("CONTINUE"); }
+"default"		{ print_location("DEFAULT"); }
+"do"			{ print_location("DO"); }
+"else"			{ print_location("ELSE"); }
+"enum"			{ print_location("ENUM"); }
+"goto"			{ print_location("GOTO"); }
+"struct"		{ print_location("STRUCT"); }
+"switch"		{ print_location("SWITCH"); }
+"typedef"		{ print_location("TYPEDEF"); }
+"union"			{ print_location("UNION"); }
+"while"			{ print_location("WHILE"); }
+
 %%
-/*
-"puts" 			{ printf("PUTS "); } 
-"auto"			{ printf("AUTO "); }
-"const"			{ printf("CONST "); }
-"continue"		{ printf("CONTINUE "); }
-"default"		{ printf("DEFAULT "); }
-"do"			{ printf("DO "); }
-"double"		{ printf("DOUBLE "); }
-"else"			{ printf("ELSE "); }
-"enum"			{ printf("ENUM "); }
-"goto"			{ printf("GOTO "); }
-"long"			{ printf("LONG "); }
-"register"		{ printf("REGISTER "); }
-"restrict"		{ printf("RESTRICT "); }
-"return"		{ printf("RETURN "); }
-"short"			{ printf("SHORT "); }
-"signed"		{ printf("SIGNED "); }
-"sizeof"		{ printf("SIZEOF "); }
-"static"		{ printf("STATIC "); }
-"struct"		{ printf("STRUCT "); }
-"switch"		{ printf("SWITCH "); }
-"typedef"		{ printf("TYPEDEF "); }
-"union"			{ printf("UNION "); }
-"unsigned"		{ printf("UNSIGNED "); }
-"void"			{ printf("VOID "); }
-"volatile"		{ printf("VOLATILE "); }
-"while"			{ printf("WHILE \n"); }
-[\n]+ ;
-
-
-
-*/
 
 int
 main(int argc, char **argv) {
-
   if (argc > 1) {
     FILE *file;
     file = fopen(argv[1], "r");
