@@ -19,6 +19,8 @@
   int col_number = 1;
   int char_offset = 0;
 
+  void print_location(char *ID);
+
 %}
 
 LOWER [a-z]+
@@ -51,49 +53,23 @@ ITYPE	{IWORD}({WS}{IWORD})*
 
 
 {ITYPE}({WS}+{STAR}{0,2}{WS}*|{WS}*{STAR}{0,2}{WS}+){CID}({LBRACKET}({INT}+|""){RBRACKET})* {
-  printf("type_def:line_no:%d:col_number:%d:%s\n",line_no,col_number,yytext);
-  char_offset+=yyleng;
-  col_number+=yyleng;
-}
-
-
+	print_location("type_def");}
 
 {INCLUDE_PREFIX}["]([:alnum:]+|"/"|"_")".h"["] {
-  printf("include:line_no:%d:col_number:%d:%s\n",line_no,col_number,yytext);
-  char_offset+=yyleng;
-  col_number+=yyleng;
-  }
+	print_location("include");}
 
 {INCLUDE_PREFIX}[<]([:alnum:]+|"/"|"_")".h"[>] {
-  printf("include:line_no:%d:col_number:%d:%s\n",line_no,col_number,yytext);
-  char_offset+=yyleng;
-  col_number+=yyleng;
-  }
-
-
+	print_location("include");}
 
 {TYPE_DECL_INT}"main(" {
-  printf("main_function:line_no:%d:col_number:%d:%s\n",line_no,col_number,yytext);
-  char_offset+=yyleng;
-  col_number+=yyleng;
-}
-
+	print_location("main_function");}
 
 "//".*	{ 
-  printf("comment:line_no:%d:col_number:%d:%s\n",line_no,col_number,yytext);
-  char_offset+=yyleng;
-  col_number+=yyleng;
-  col_number+=1;
-}
-
-
+	print_location("comment");}
 
 [^a-zA-Z0-9]return[ \t]+{INT} {
   if (col_number > 1) {col_number+=1;}
-  printf("return_function:line_no:%d:col_number:%d:%s\n",line_no,col_number,yytext);
-  char_offset+=yyleng;
-  col_number+=yyleng;
-}
+	print_location("return_statement");}
 
 [^a-zA-Z0-9]float[ \t]+[a-zA-Z]+[ \t]+"="{WS}+{FLOAT}({WS}*","{WS}*{FLOAT})* {
   if (col_number > 1) {col_number+=1;}
@@ -103,8 +79,7 @@ ITYPE	{IWORD}({WS}{IWORD})*
   printf("float_assigned_value:line_no:%d:col_number:%d:%s\n",line_no,col_number,s);
   char_offset+=yyleng;
   col_number+=yyleng;
-  sdsfree(s);
-}
+  sdsfree(s);}
 
 [^a-zA-Z0-9]double[ \t]+[a-zA-Z]+[ \t]+"="{WS}+{DOUBLE}({WS}*","{WS}*{DOUBLE})* {
   if (col_number > 1) {col_number+=1;}
@@ -114,8 +89,8 @@ ITYPE	{IWORD}({WS}{IWORD})*
   printf("double_assigned_value:line_no:%d:col_number:%d:%s\n",line_no,col_number,s);
   char_offset+=yyleng;
   col_number+=yyleng;
-  sdsfree(s);
-}
+  sdsfree(s);}
+
 [^a-zA-Z0-9]int[ \t]+[a-zA-Z]+[ \t]+"="[ \t]+{INT}({WS}*","{WS}*{INT})* {
   if (col_number > 1) {col_number+=1;}
   sds s = sdsnew(yytext);
@@ -124,21 +99,34 @@ ITYPE	{IWORD}({WS}{IWORD})*
   printf("int_assigned_value:line_no:%d:col_number:%d:%s\n",line_no,col_number,s);
   char_offset+=yyleng;
   col_number+=yyleng;
-  sdsfree(s);
-}
+  sdsfree(s);}
 
 
 "(".*?")"	{
-  //if (col_number > 1) {col_number+=1;}
-  printf("expression:line_no:%d:col_number:%d:%s\n",line_no,col_number,yytext);
-  char_offset+=yyleng;
-  col_number+=yyleng;
-}
+	print_location("expression");}
 
 
-
-
-
+">>="			{ print_location("RIGHT_ASSIGN"); }
+"<<="			{ print_location("LEFT_ASSIGN"); }
+"+="			{ print_location("ADD_ASSIGN"); }
+"-="			{ print_location("SUB_ASSIGN"); }
+"*="			{ print_location("MUL_ASSIGN"); }
+"/="			{ print_location("DIV_ASSIGN"); }
+"%="			{ print_location("MOD_ASSIGN"); }
+"&="			{ print_location("AND_ASSIGN"); }
+"^="			{ print_location("XOR_ASSIGN"); }
+"|="			{ print_location("OR_ASSIGN"); }
+">>"			{ print_location("RIGHT_OP"); }
+"<<"			{ print_location("LEFT_OP"); }
+"++"			{ print_location("INC_OP"); }
+"--"			{ print_location("DEC_OP"); }
+"->"			{ print_location("PTR_OP"); }
+"&&"			{ print_location("AND_OP"); }
+"||"			{ print_location("OR_OP"); }
+"<="			{ print_location("LE_OP"); }
+">="			{ print_location("GE_OP"); }
+"=="			{ print_location("EQ_OP"); }
+"!="			{ print_location("NE_OP"); }
 
 %%
 /*
@@ -168,32 +156,6 @@ ITYPE	{IWORD}({WS}{IWORD})*
 "void"			{ printf("VOID "); }
 "volatile"		{ printf("VOLATILE "); }
 "while"			{ printf("WHILE \n"); }
-"("			{ printf("LPAREN \n"); }
-")"			{ printf("RPAREN \n"); }
-"{"			{ printf("LBRACE \n"); }
-"}"			{ printf("RBRACE \n"); }
-"..."			{ printf("ELLIPSIS "); }
-">>="			{ printf("RIGHT_ASSIGN "); }
-"<<="			{ printf("LEFT_ASSIGN "); }
-"+="			{ printf("ADD_ASSIGN "); }
-"-="			{ printf("SUB_ASSIGN "); }
-"*="			{ printf("MUL_ASSIGN "); }
-"/="			{ printf("DIV_ASSIGN "); }
-"%="			{ printf("MOD_ASSIGN "); }
-"&="			{ printf("AND_ASSIGN "); }
-"^="			{ printf("XOR_ASSIGN "); }
-"|="			{ printf("OR_ASSIGN "); }
-">>"			{ printf("RIGHT_OP "); }
-"<<"			{ printf("LEFT_OP "); }
-"++"			{ printf("INC_OP "); }
-"--"			{ printf("DEC_OP "); }
-"->"			{ printf("PTR_OP "); }
-"&&"			{ printf("AND_OP "); }
-"||"			{ printf("OR_OP "); }
-"<="			{ printf("LE_OP "); }
-">="			{ printf("GE_OP "); }
-"=="			{ printf("EQ_OP "); }
-"!="			{ printf("NE_OP "); }
 [\n]+ ;
 
 
@@ -263,4 +225,9 @@ int lookup_word(char *word) {
   return LOOKUP; /* not found */
 }
 
+void print_location(char *ID){
+  printf("%s:line_no:%d:col_number:%d:%s\n\n",ID,line_no,col_number,yytext);
+  char_offset+=yyleng;
+  col_number+=yyleng;
+}
 
