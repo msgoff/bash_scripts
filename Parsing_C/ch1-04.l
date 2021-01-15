@@ -1,4 +1,7 @@
 %{
+
+//https://github.com/gcc-mirror/gcc/blob/master/gcc/gengtype-lex.l
+
 #include "sds.h"
 #include "sdsalloc.h"
 
@@ -15,20 +18,26 @@
   int line_no = 1;
   int col_number = 1;
   int char_offset = 0;
+
 %}
 
-WS [ \t]
 LOWER [a-z]+
 UPPER [A-Z]+
 INT "0"|[1-9][0-9]*
 TYPE_DECL_INT [ \t]*int[ \t\n]+
 INCLUDE_PREFIX {WS}*"#"{WS}*"include"{WS}+
-ALPHA_NUMERIC [a-zA-Z0-9]
 STAR "*"
 UNDERSCORE "_"
 LBRACKET "["
 RBRACKET "]"
 SEMICOLON ";"
+
+CID	[[:alpha:]_][[:alnum:]_]*
+WS	[[:space:]]+
+HWS	[ \t\r\v\f]*
+IWORD	short|long|(un)?signed|char|int|uint64_t|int64_t|bool|size_t
+ITYPE	{IWORD}({WS}{IWORD})*
+
 
 %%
 [ ]     { char_offset+=1; col_number+=1; }
@@ -36,31 +45,27 @@ SEMICOLON ";"
 .	{ char_offset++; col_number++; }
 \n { line_no++;state = LOOKUP; char_offset++; col_number=1;  } /* end of line, return to default state */
 
-{INCLUDE_PREFIX}["]({ALPHA_NUMERIC}+|"/"|"_")".h"["] {
-  printf("include:line_no:%d:col_number:%d:%s\n",line_no,col_number,yytext);
-  char_offset+=yyleng;
-  col_number+=yyleng;
-  }
 
-{INCLUDE_PREFIX}[<]({ALPHA_NUMERIC}+|"/"|"_")".h"[>] {
-  printf("include:line_no:%d:col_number:%d:%s\n",line_no,col_number,yytext);
+{ITYPE}{WS}+{CID} {
+  printf("type_def:line_no:%d:col_number:%d:%s\n",line_no,col_number,yytext);
   char_offset+=yyleng;
   col_number+=yyleng;
   }
 
 
-"int argc" { 
-  printf("argc:line_no:%d:col_number:%d:%s\n",line_no,col_number,yytext);
+
+{INCLUDE_PREFIX}["]([:alnum:]+|"/"|"_")".h"["] {
+  printf("include:line_no:%d:col_number:%d:%s\n",line_no,col_number,yytext);
   char_offset+=yyleng;
   col_number+=yyleng;
-}
+  }
 
-
-"char *argv[]" { 
-  printf("argv:line_no:%d:col_number:%d:%s\n",line_no,col_number,yytext);
+{INCLUDE_PREFIX}[<]([:alnum:]+|"/"|"_")".h"[>] {
+  printf("include:line_no:%d:col_number:%d:%s\n",line_no,col_number,yytext);
   char_offset+=yyleng;
   col_number+=yyleng;
-}
+  }
+
 
 
 {TYPE_DECL_INT}"main(" {
@@ -72,12 +77,6 @@ SEMICOLON ";"
 
 "//".*	{ 
   printf("comment:line_no:%d:col_number:%d:%s\n",line_no,col_number,yytext);
-  char_offset+=yyleng;
-  col_number+=yyleng;
-  col_number+=1;
-}
-"char"{WS}*{STAR}{0,2}{WS}*{LOWER}({ALPHA_NUMERIC}|"_")+({LBRACKET}{INT}{RBRACKET})* {
-  printf("char_typec:line_no:%d:col_number:%d:%s\n",line_no,col_number,yytext);
   char_offset+=yyleng;
   col_number+=yyleng;
   col_number+=1;
