@@ -24,6 +24,10 @@
 LOWER [a-z]+
 UPPER [A-Z]+
 INT "0"|[1-9][0-9]*
+FLOAT {INT}+"."{INT}+f
+DOUBLE {INT}+"."{INT}+
+
+
 TYPE_DECL_INT [ \t]*int[ \t\n]+
 INCLUDE_PREFIX {WS}*"#"{WS}*"include"{WS}+
 STAR "*"
@@ -35,7 +39,7 @@ SEMICOLON ";"
 CID	[[:alpha:]_][[:alnum:]_]*
 WS	[[:space:]]+
 HWS	[ \t\r\v\f]*
-IWORD	short|long|(un)?signed|char|int|uint64_t|int64_t|bool|size_t
+IWORD	short|long|(un)?signed|char|int|uint64_t|int64_t|bool|size_t|float|double
 ITYPE	{IWORD}({WS}{IWORD})*
 
 
@@ -91,8 +95,28 @@ ITYPE	{IWORD}({WS}{IWORD})*
   col_number+=yyleng;
 }
 
+[^a-zA-Z0-9]float[ \t]+[a-zA-Z]+[ \t]+"="{WS}+{FLOAT}({WS}*","{WS}*{FLOAT})* {
+  if (col_number > 1) {col_number+=1;}
+  sds s = sdsnew(yytext);
+  sdstrim(s," \n(");
+  sdsrange(s,6,20);
+  printf("float_assigned_value:line_no:%d:col_number:%d:%s\n",line_no,col_number,s);
+  char_offset+=yyleng;
+  col_number+=yyleng;
+  sdsfree(s);
+}
 
-[^a-zA-Z0-9]int[ \t]+[a-zA-Z]+[ \t]+"="[ \t]+{INT} {
+[^a-zA-Z0-9]double[ \t]+[a-zA-Z]+[ \t]+"="{WS}+{DOUBLE}({WS}*","{WS}*{DOUBLE})* {
+  if (col_number > 1) {col_number+=1;}
+  sds s = sdsnew(yytext);
+  sdstrim(s," \n(");
+  sdsrange(s,6,20);
+  printf("double_assigned_value:line_no:%d:col_number:%d:%s\n",line_no,col_number,s);
+  char_offset+=yyleng;
+  col_number+=yyleng;
+  sdsfree(s);
+}
+[^a-zA-Z0-9]int[ \t]+[a-zA-Z]+[ \t]+"="[ \t]+{INT}({WS}*","{WS}*{INT})* {
   if (col_number > 1) {col_number+=1;}
   sds s = sdsnew(yytext);
   sdstrim(s," \n(");
