@@ -1,3 +1,4 @@
+sudo apt install openjdk-11-jdk
 if [[ ! -f /usr/local/lib/antlr-4.7.1-complete.jar ]];
 then
 	cd /tmp/
