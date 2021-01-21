@@ -1,0 +1,109 @@
+The Compilation Phase
+	-O0 through -O3
+
+to store the assembly files to disk
+	-S flag
+	You can also use -masm=intel -> intel instead of ATT
+
+#gcc -E -P some_file.c
+
+gcc -S -masm=intel 
+
+The Assembly Phase 
+	set of object files -> modules
+	modules contain machine instructions
+	typically each source file corresponds to one object file
+
+
+	relocateable file
+		object files are compiled independently from each other
+		so the assembler has no way of knowing the memory addresses of other object files 
+		when assembling that way you can link them together in any order to form a complete binary
+
+
+The Linking Phase 
+	link-time optimization LTO
+	linker or link-editor
+		relocation symbols
+		symbolic references
+			static libraries
+			dynamic libraries
+				shared among all programs that run on a system
+
+
+Binaries 
+	C -> centers around functions and variables with meaningfule human readable names
+
+
+
+readelf --syms a.out
+
+	readelf to display the symbols
+	for ELF debugging symbols are typically DWARF format
+	
+	while PE are proprietary Microsoft Portable Debugging format
+		dwarf embedded in bin while pdb seperate
+
+	parse symbols with readelf
+		libbfd
+		usually bins are stripped so little symbolic information
+
+strip --strip-all a.out 
+
+readelf --syms a.out
+
+.rodata is read-only data
+	where constants are stored
+
+objdump
+
+	objdump -sj .rodata a.o
+	*** objdump -M intel -d a.o
+
+readelf --relocs a.o
+
+
+LIBBBFD
+	Binary file descriptor library 
+	read and parse all popular bin formats
+		binutils suite
+		binutils-dev
+		/usr/include/bfd.h
+
+
+xxd -c 32
+	xxd -b for binary
+	xxd -i c-style which can be used in  C,C++ source
+		-s for seek file offset
+		-l length
+
+
+nm -D --demangle lib.so
+
+export LD_LIBRARY_PATH=`pwd`
+
+strings -d 
+
+ltrace -i -C 
+
+-hs header + symbol tables
+readelf -hs lib.so
+
+
+gdb 
+	run 
+	break
+	next 
+	step
+	continue
+	break file1.c:6if i >= ARRAYSIZE
+
+
+	
+display/i $pc display the instruction at the current program counter $pc
+info registers rcx
+dump memory  is x 
+x/d single byte decimal
+x/x hex
+x/4xw 4 hex words
+x/s c style string

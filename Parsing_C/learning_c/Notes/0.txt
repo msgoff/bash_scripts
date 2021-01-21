@@ -1,0 +1,1 @@
+gdb --batch --ex run --ex bt --ex q --args exe_file_name
